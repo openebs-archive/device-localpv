@@ -1,0 +1,8 @@
+/bin
+buildscripts/device-driver/device-driver
+cscope*
+tags
+*.swp
+*.swo
+*.swn
+*.idea

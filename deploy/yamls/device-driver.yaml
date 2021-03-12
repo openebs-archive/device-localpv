@@ -1,0 +1,306 @@
+
+---
+
+# Create the CSI Driver object
+apiVersion: storage.k8s.io/v1beta1
+kind: CSIDriver
+metadata:
+  name: local.csi.openebs.io
+spec:
+  # do not require volumeattachment
+  attachRequired: false
+  podInfoOnMount: true
+---
+
+##############################################
+###########                       ############
+###########   Controller plugin   ############
+###########                       ############
+##############################################
+
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: openebs-device-controller-sa
+  namespace: kube-system
+
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openebs-device-provisioner-role
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["persistentvolumes", "services"]
+    verbs: ["get", "list", "watch", "create", "delete", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "update"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims/status"]
+    verbs: ["update", "patch"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses", "csinodes"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["list", "watch", "create", "update", "patch"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "watch", "list", "delete", "update", "create"]
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["*"]
+    resources: ["devicevolumes"]
+    verbs: ["*"]
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openebs-device-provisioner-binding
+subjects:
+  - kind: ServiceAccount
+    name: openebs-device-controller-sa
+    namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: openebs-device-provisioner-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: openebs-device-controller
+  namespace: kube-system
+  labels:
+    openebs.io/component-name: openebs-device-controller
+    openebs.io/version: ci
+spec:
+  selector:
+    matchLabels:
+      app: openebs-device-controller
+      role: openebs-device
+  serviceName: "openebs-device"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: openebs-device-controller
+        role: openebs-device
+        openebs.io/component-name: openebs-device-controller
+        openebs.io/version: ci
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - openebs-device-controller
+            topologyKey: "kubernetes.io/hostname"
+      priorityClassName: system-cluster-critical
+      serviceAccount: openebs-device-controller-sa
+      containers:
+        - name: csi-provisioner
+          image: k8s.gcr.io/sig-storage/csi-provisioner:v2.1.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--csi-address=$(ADDRESS)"
+            - "--v=5"
+            - "--feature-gates=Topology=true"
+            - "--strict-topology"
+            - "--leader-election"
+            - "--extra-create-metadata=true"
+          env:
+            - name: ADDRESS
+              value: /var/lib/csi/sockets/pluginproxy/csi.sock
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /var/lib/csi/sockets/pluginproxy/
+        - name: openebs-device-plugin
+          image: openebs/device-driver:ci
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: OPENEBS_CONTROLLER_DRIVER
+              value: controller
+            - name: OPENEBS_CSI_ENDPOINT
+              value: unix:///var/lib/csi/sockets/pluginproxy/csi.sock
+            - name: LVM_NAMESPACE
+              value: openebs
+            - name: OPENEBS_IO_INSTALLER_TYPE
+              value: "device-operator"
+            - name: OPENEBS_IO_ENABLE_ANALYTICS
+              value: "true"
+          args :
+            - "--endpoint=$(OPENEBS_CSI_ENDPOINT)"
+            - "--plugin=$(OPENEBS_CONTROLLER_DRIVER)"
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /var/lib/csi/sockets/pluginproxy/
+      volumes:
+        - name: socket-dir
+          emptyDir: {}
+---
+
+########################################
+###########                 ############
+###########   Node plugin   ############
+###########                 ############
+########################################
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: openebs-device-node-sa
+  namespace: kube-system
+
+---
+
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openebs-device-driver-registrar-role
+rules:
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["persistentvolumes", "nodes", "services"]
+    verbs: ["get", "list"]
+  - apiGroups: ["*"]
+    resources: ["devicevolumes"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openebs-device-driver-registrar-binding
+subjects:
+  - kind: ServiceAccount
+    name: openebs-device-node-sa
+    namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: openebs-device-driver-registrar-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+
+
+kind: DaemonSet
+apiVersion: apps/v1
+metadata:
+  name: openebs-device-node
+  namespace: kube-system
+  labels:
+    openebs.io/component-name: openebs-device-node
+    openebs.io/version: ci
+spec:
+  selector:
+    matchLabels:
+      app: openebs-device-node
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 100%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: openebs-device-node
+        role: openebs-device
+        openebs.io/component-name: openebs-device-node
+        openebs.io/version: ci
+    spec:
+      priorityClassName: system-node-critical
+      serviceAccount: openebs-device-node-sa
+      hostNetwork: true
+      containers:
+        - name: csi-node-driver-registrar
+          image: quay.io/k8scsi/csi-node-driver-registrar:v1.2.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--v=5"
+            - "--csi-address=$(ADDRESS)"
+            - "--kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)"
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "rm -rf /registration/device-localpv /registration/device-localpv-reg.sock"]
+          env:
+            - name: ADDRESS
+              value: /plugin/csi.sock
+            - name: DRIVER_REG_SOCK_PATH
+              value: /var/lib/kubelet/plugins/device-localpv/csi.sock
+            - name: KUBE_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: NODE_DRIVER
+              value: openebs-device
+          volumeMounts:
+            - name: plugin-dir
+              mountPath: /plugin
+            - name: registration-dir
+              mountPath: /registration
+        - name: openebs-device-plugin
+          securityContext:
+            privileged: true
+            allowPrivilegeEscalation: true
+          image: openebs/device-driver:ci
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--nodeid=$(OPENEBS_NODE_ID)"
+            - "--endpoint=$(OPENEBS_CSI_ENDPOINT)"
+            - "--plugin=$(OPENEBS_NODE_DRIVER)"
+          env:
+            - name: OPENEBS_NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: OPENEBS_CSI_ENDPOINT
+              value: unix:///plugin/csi.sock
+            - name: OPENEBS_NODE_DRIVER
+              value: agent
+            - name: LVM_NAMESPACE
+              value: openebs
+          volumeMounts:
+            - name: plugin-dir
+              mountPath: /plugin
+            - name: device-dir
+              mountPath: /dev
+            - name: pods-mount-dir
+              mountPath: /var/lib/kubelet/
+              # needed so that any mounts setup inside this container are
+              # propagated back to the host machine.
+              mountPropagation: "Bidirectional"
+      volumes:
+        - name: device-dir
+          hostPath:
+            path: /dev
+            type: Directory
+        - name: registration-dir
+          hostPath:
+            path: /var/lib/kubelet/plugins_registry/
+            type: DirectoryOrCreate
+        - name: plugin-dir
+          hostPath:
+            path: /var/lib/kubelet/plugins/device-localpv/
+            type: DirectoryOrCreate
+        - name: pods-mount-dir
+          hostPath:
+            path: /var/lib/kubelet/
+            type: Directory
+---
