@@ -17,6 +17,9 @@ limitations under the License.
 package device
 
 import (
+	"fmt"
+	"os"
+
 	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
 )
 
@@ -27,6 +30,7 @@ const (
 
 // TODO @praveengt
 func CreateVolume(vol *apis.DeviceVolume) error {
+
 	return nil
 }
 
@@ -37,18 +41,54 @@ func DestroyVolume(vol *apis.DeviceVolume) error {
 
 // TODO @praveengt
 func CheckVolumeExists(vol *apis.DeviceVolume) (bool, error) {
-
+	devPath, err := GetVolumeDevPath(vol)
+	if err != nil {
+		return false, err
+	}
+	if _, err = os.Stat(devPath); err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
 
 // GetVolumeDevPath return the dev path for volume
 func GetVolumeDevPath(vol *apis.DeviceVolume) (string, error) {
-	devicePath, err := getDevPathFromMetaPartition(vol)
+	var deviceName string
 
-	return devicePath, err
+	diskPaths, err := getDiskPathFromMetaPartition(vol)
+
+	for _, diskPath := range diskPaths {
+		deviceName, err = getPathFromPartitionName(diskPath, vol)
+		if err != nil {
+			// TODO
+		}
+		if len(deviceName) != 0 {
+			break
+		}
+	}
+
+	if len(deviceName) == 0 {
+		return "", fmt.Errorf("no volume found")
+	}
+
+	return deviceName, err
 }
 
 // TODO @praveengt
-// reads the information from partition and get the device path
-func getDevPathFromMetaPartition(vol *apis.DeviceVolume) (string, error) {
+// reads the information from partition and get all the disks which have the given name
+// partitions
+func getDiskPathFromMetaPartition(vol *apis.DeviceVolume) ([]string, error) {
+	var disks []string
+
+	return disks, nil
+}
+
+// TODO @praveengt
+// reads all the partitions on the given disk and finds the partition with the given
+// name
+func getPathFromPartitionName(diskPath string, vol *apis.DeviceVolume) (string, error) {
 	return "", nil
 }
