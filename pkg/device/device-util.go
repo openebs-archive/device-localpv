@@ -18,6 +18,7 @@ package device
 
 import (
 	"fmt"
+	"k8s.io/klog"
 	"os"
 
 	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
@@ -28,17 +29,41 @@ const (
 	DevPath = "/dev/"
 )
 
+// CreateVolume creates the partition on the disk with the given device name
 // TODO @praveengt
 func CreateVolume(vol *apis.DeviceVolume) error {
+	volExists, err := CheckVolumeExists(vol)
+	if err != nil {
+		return err
+	}
+
+	if volExists {
+		klog.Infof("volume (%s) already exists, skipping creation", vol.Name)
+	}
+
+	//TODO
+	// add code here to select a free slot and create partition
 
 	return nil
 }
 
+// DestroyVolume deletes the partition on the disk
 // TODO @praveengt
 func DestroyVolume(vol *apis.DeviceVolume) error {
+	volExists, err := CheckVolumeExists(vol)
+	if err != nil {
+		return err
+	}
 
+	if volExists {
+		klog.Infof("volume (%s) does not exist, skipping deletion", vol.Name)
+	}
+
+	// TODO
+	// add code to remove the partition from the disk
 }
 
+// CheckVolumeExists checks if a partition with the given volume name as label exists on the disk
 // TODO @praveengt
 func CheckVolumeExists(vol *apis.DeviceVolume) (bool, error) {
 	devPath, err := GetVolumeDevPath(vol)
