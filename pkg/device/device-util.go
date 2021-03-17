@@ -17,8 +17,6 @@ limitations under the License.
 package device
 
 import (
-	"path/filepath"
-
 	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
 )
 
@@ -27,15 +25,30 @@ const (
 	DevPath = "/dev/"
 )
 
+// TODO @praveengt
+func CreateVolume(vol *apis.DeviceVolume) error {
+	return nil
+}
+
+// TODO @praveengt
+func DestroyVolume(vol *apis.DeviceVolume) error {
+
+}
+
+// TODO @praveengt
+func CheckVolumeExists(vol *apis.DeviceVolume) (bool, error) {
+
+}
+
 // GetVolumeDevPath return the dev path for volume
 func GetVolumeDevPath(vol *apis.DeviceVolume) (string, error) {
-	devicePath := DevPath + vol.Spec.DevName
+	devicePath, err := getDevPathFromMetaPartition(vol)
 
-	// evaluate the symlink to get the dev path for zvol
-	dev, err := filepath.EvalSymlinks(devicePath)
-	if err != nil {
-		return "", err
-	}
+	return devicePath, err
+}
 
-	return dev, nil
+// TODO @praveengt
+// reads the information from partition and get the device path
+func getDevPathFromMetaPartition(vol *apis.DeviceVolume) (string, error) {
+	return "", nil
 }
