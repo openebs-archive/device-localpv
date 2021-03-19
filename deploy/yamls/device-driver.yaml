@@ -136,7 +136,7 @@ spec:
               value: controller
             - name: OPENEBS_CSI_ENDPOINT
               value: unix:///var/lib/csi/sockets/pluginproxy/csi.sock
-            - name: LVM_NAMESPACE
+            - name: DEVICE_DRIVER_NAMESPACE
               value: openebs
             - name: OPENEBS_IO_INSTALLER_TYPE
               value: "device-operator"
@@ -274,7 +274,7 @@ spec:
               value: unix:///plugin/csi.sock
             - name: OPENEBS_NODE_DRIVER
               value: agent
-            - name: LVM_NAMESPACE
+            - name: DEVICE_DRIVER_NAMESPACE
               value: openebs
           volumeMounts:
             - name: plugin-dir
