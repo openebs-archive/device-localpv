@@ -27,13 +27,13 @@ const (
 	// DeviceNamespaceKey is the environment variable to get openebs namespace
 	//
 	// This environment variable is set via kubernetes downward API
-	DeviceNamespaceKey string = "Device_NAMESPACE"
+	DeviceNamespaceKey string = "DEVICE_DRIVER_NAMESPACE"
 	// GoogleAnalyticsKey This environment variable is set via env
 	GoogleAnalyticsKey string = "OPENEBS_IO_ENABLE_ANALYTICS"
 	// DeviceFinalizer for the DeviceVolume CR
 	DeviceFinalizer string = "device.openebs.io/finalizer"
-	// VolGroupKey is key for Device group name
-	VolGroupKey string = "openebs.io/volgroup"
+	// DeviceNameKey is key for Device group name
+	DeviceNameKey string = "openebs.io/devicename"
 	// DeviceNodeKey will be used to insert Label in DeviceVolume CR
 	DeviceNodeKey string = "kubernetes.io/nodename"
 	// DeviceTopologyKey is supported topology key for the device driver
@@ -75,14 +75,14 @@ func init() {
 // watcher for volume is present in CSI agent
 func ProvisionVolume(
 	vol *apis.DeviceVolume,
-) error {
+) (*apis.DeviceVolume, error) {
 
-	_, err := volbuilder.NewKubeclient().WithNamespace(DeviceNamespace).Create(vol)
+	createdVolume, err := volbuilder.NewKubeclient().WithNamespace(DeviceNamespace).Create(vol)
 	if err == nil {
 		klog.Infof("provisioned volume %s", vol.Name)
 	}
 
-	return err
+	return createdVolume, err
 }
 
 // DeleteVolume deletes the corresponding Device Volume CR

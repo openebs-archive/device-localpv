@@ -50,7 +50,7 @@ func NewNode(d *CSIDriver) csi.NodeServer {
 	// set up signals so we handle the first shutdown signal gracefully
 	stopCh := signals.SetupSignalHandler()
 
-	// start the zfsvolume watcher
+	// start the device  watcher
 	go func() {
 		err := volume.Start(&ControllerMutex, stopCh)
 		if err != nil {
@@ -108,7 +108,23 @@ func (ns *node) NodePublishVolume(
 		return nil, err
 	}
 
-	return nil, status.Error(codes.Unimplemented, "")
+	vol, mountInfo, err := GetVolAndMountInfo(req)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	switch req.GetVolumeCapability().GetAccessType().(type) {
+	case *csi.VolumeCapability_Mount:
+		err = device.MountFilesystem(vol, mountInfo)
+	case *csi.VolumeCapability_Block:
+		// TODO @akhilerm
+	}
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &csi.NodePublishVolumeResponse{}, nil
 }
 
 // NodeUnpublishVolume unpublishes (unmounts) the volume
@@ -122,13 +138,34 @@ func (ns *node) NodeUnpublishVolume(
 
 	var (
 		err error
+		vol *apis.DeviceVolume
 	)
 
 	if err = ns.validateNodeUnpublishReq(req); err != nil {
 		return nil, err
 	}
 
-	return nil, status.Error(codes.Unimplemented, "")
+	targetPath := req.GetTargetPath()
+	volumeID := req.GetVolumeId()
+
+	if vol, err = device.GetDeviceVolume(volumeID); err != nil {
+		return nil, status.Errorf(codes.Internal,
+			"not able to get the DeviceVolume %s err : %s",
+			volumeID, err.Error())
+	}
+
+	err = device.UmountVolume(vol, targetPath)
+
+	if err != nil {
+		return nil, status.Errorf(codes.Internal,
+			"unable to umount the volume %s err : %s",
+			volumeID, err.Error())
+	}
+	klog.Infof("hostpath: volume %s path: %s has been unmounted.",
+		volumeID, targetPath)
+
+	return &csi.NodeUnpublishVolumeResponse{}, nil
+
 }
 
 // NodeGetInfo returns node details
