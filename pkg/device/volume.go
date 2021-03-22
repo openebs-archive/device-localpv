@@ -154,7 +154,7 @@ func RemoveVolFinalizer(vol *apis.DeviceVolume) error {
 	return err
 }
 
-// WaitForDeviceVolumeProcessed waits till the lvm volume becomes
+// WaitForDeviceVolumeProcessed waits till the device volume becomes
 // ready or failed (i.e reaches to terminal state).
 func WaitForDeviceVolumeProcessed(ctx context.Context, volumeID string) (*apis.DeviceVolume, error) {
 	timer := time.NewTimer(0)
@@ -178,7 +178,7 @@ func WaitForDeviceVolumeProcessed(ctx context.Context, volumeID string) (*apis.D
 	}
 }
 
-// WaitForDeviceVolumeDestroy waits till the lvm volume gets deleted.
+// WaitForDeviceVolumeDestroy waits till the device volume gets deleted.
 func WaitForDeviceVolumeDestroy(ctx context.Context, volumeID string) error {
 	timer := time.NewTimer(0)
 	defer timer.Stop()
@@ -194,7 +194,7 @@ func WaitForDeviceVolumeDestroy(ctx context.Context, volumeID string) error {
 				return nil
 			}
 			return status.Errorf(codes.Aborted,
-				"lvm: destroy wait failed, not able to get the volume %s %s", volumeID, err.Error())
+				"device: destroy wait failed, not able to get the volume %s %s", volumeID, err.Error())
 		}
 		timer.Reset(1 * time.Second)
 	}

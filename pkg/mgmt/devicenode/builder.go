@@ -61,10 +61,10 @@ type NodeController struct {
 	// Kubernetes API.
 	recorder record.EventRecorder
 
-	// pollInterval controls the polling frequency of syncing up the vg metadata.
+	// pollInterval controls the polling frequency of syncing up the device metadata.
 	pollInterval time.Duration
 
-	// ownerRef is used to set the owner reference to lvmnode objects.
+	// ownerRef is used to set the owner reference to devicenode objects.
 	ownerRef metav1.OwnerReference
 }
 
@@ -126,7 +126,7 @@ func (cb *NodeControllerBuilder) withRecorder(ks kubernetes.Interface) *NodeCont
 // withEventHandler adds event handlers controller object.
 func (cb *NodeControllerBuilder) withEventHandler(cvcInformerFactory informers.SharedInformerFactory) *NodeControllerBuilder {
 	cvcInformer := cvcInformerFactory.Local().V1alpha1().DeviceNodes()
-	// Set up an event handler for when lvm node vg change.
+	// Set up an event handler for when device node device change.
 	// Note: rather than setting up the resync period at informer level,
 	// we are controlling the syncing based on pollInternal. See
 	// NodeController#Run func for more details.

@@ -39,7 +39,7 @@ type getClientsetForPathFn func(kubeConfigPath string) (
 )
 
 // createFn is a typed function that abstracts
-// creating lvm node instance
+// creating device node instance
 type createFn func(
 	cs *clientset.Clientset,
 	upgradeResultObj *apis.DeviceNode,
@@ -47,7 +47,7 @@ type createFn func(
 ) (*apis.DeviceNode, error)
 
 // getFn is a typed function that abstracts
-// fetching a lvm node instance
+// fetching a device node instance
 type getFn func(
 	cli *clientset.Clientset,
 	name,
@@ -56,7 +56,7 @@ type getFn func(
 ) (*apis.DeviceNode, error)
 
 // listFn is a typed function that abstracts
-// listing of lvm node instances
+// listing of device node instances
 type listFn func(
 	cli *clientset.Clientset,
 	namespace string,
@@ -64,7 +64,7 @@ type listFn func(
 ) (*apis.DeviceNodeList, error)
 
 // delFn is a typed function that abstracts
-// deleting a lvm node instance
+// deleting a device node instance
 type delFn func(
 	cli *clientset.Clientset,
 	name,
@@ -73,7 +73,7 @@ type delFn func(
 ) error
 
 // updateFn is a typed function that abstracts
-// updating lvm node instance
+// updating device node instance
 type updateFn func(
 	cs *clientset.Clientset,
 	node *apis.DeviceNode,
@@ -81,9 +81,9 @@ type updateFn func(
 ) (*apis.DeviceNode, error)
 
 // Kubeclient enables kubernetes API operations
-// on lvm node instance
+// on device node instance
 type Kubeclient struct {
-	// clientset refers to lvm node's
+	// clientset refers to device node's
 	// clientset that will be responsible to
 	// make kubernetes API calls
 	clientset *clientset.Clientset
@@ -137,7 +137,7 @@ func defaultGetClientsetForPath(
 }
 
 // defaultGet is the default implementation to get
-// a lvm node instance in kubernetes cluster
+// a device node instance in kubernetes cluster
 func defaultGet(
 	cli *clientset.Clientset,
 	name, namespace string,
@@ -149,7 +149,7 @@ func defaultGet(
 }
 
 // defaultList is the default implementation to list
-// lvm node instances in kubernetes cluster
+// device node instances in kubernetes cluster
 func defaultList(
 	cli *clientset.Clientset,
 	namespace string,
@@ -161,7 +161,7 @@ func defaultList(
 }
 
 // defaultCreate is the default implementation to delete
-// a lvm node instance in kubernetes cluster
+// a device node instance in kubernetes cluster
 func defaultDel(
 	cli *clientset.Clientset,
 	name, namespace string,
@@ -176,7 +176,7 @@ func defaultDel(
 }
 
 // defaultCreate is the default implementation to create
-// a lvm node instance in kubernetes cluster
+// a device node instance in kubernetes cluster
 func defaultCreate(
 	cli *clientset.Clientset,
 	node *apis.DeviceNode,
@@ -188,7 +188,7 @@ func defaultCreate(
 }
 
 // defaultUpdate is the default implementation to update
-// a lvm node instance in kubernetes cluster
+// a device node instance in kubernetes cluster
 func defaultUpdate(
 	cli *clientset.Clientset,
 	node *apis.DeviceNode,
@@ -257,7 +257,7 @@ func WithKubeConfigPath(path string) KubeclientBuildOption {
 }
 
 // NewKubeclient returns a new instance of
-// kubeclient meant for lvm node operations
+// kubeclient meant for device node operations
 func NewKubeclient(opts ...KubeclientBuildOption) *Kubeclient {
 	k := &Kubeclient{}
 	for _, o := range opts {
@@ -299,20 +299,20 @@ func (k *Kubeclient) getClientOrCached() (*clientset.Clientset, error) {
 	return k.clientset, nil
 }
 
-// Create creates a lvm node instance
+// Create creates a device node instance
 // in kubernetes cluster
 func (k *Kubeclient) Create(node *apis.DeviceNode) (*apis.DeviceNode, error) {
 	if node == nil {
 		return nil,
 			errors.New(
-				"failed to create lvm node: nil node object",
+				"failed to create device node: nil node object",
 			)
 	}
 	cs, err := k.getClientOrCached()
 	if err != nil {
 		return nil, errors.Wrapf(
 			err,
-			"failed to create lvm node {%s} in namespace {%s}",
+			"failed to create device node {%s} in namespace {%s}",
 			node.Name,
 			k.namespace,
 		)
@@ -321,7 +321,7 @@ func (k *Kubeclient) Create(node *apis.DeviceNode) (*apis.DeviceNode, error) {
 	return k.create(cs, node, k.namespace)
 }
 
-// Get returns lvm node object for given name
+// Get returns device node object for given name
 func (k *Kubeclient) Get(
 	name string,
 	opts metav1.GetOptions,
@@ -329,7 +329,7 @@ func (k *Kubeclient) Get(
 	if name == "" {
 		return nil,
 			errors.New(
-				"failed to get lvm node: missing lvm node name",
+				"failed to get device node: missing device node name",
 			)
 	}
 
@@ -337,7 +337,7 @@ func (k *Kubeclient) Get(
 	if err != nil {
 		return nil, errors.Wrapf(
 			err,
-			"failed to get lvm node {%s} in namespace {%s}",
+			"failed to get device node {%s} in namespace {%s}",
 			name,
 			k.namespace,
 		)
@@ -346,7 +346,7 @@ func (k *Kubeclient) Get(
 	return k.get(cli, name, k.namespace, opts)
 }
 
-// GetRaw returns lvm node instance
+// GetRaw returns device node instance
 // in bytes
 func (k *Kubeclient) GetRaw(
 	name string,
@@ -354,14 +354,14 @@ func (k *Kubeclient) GetRaw(
 ) ([]byte, error) {
 	if name == "" {
 		return nil, errors.New(
-			"failed to get raw lvm node: missing node name",
+			"failed to get raw device node: missing node name",
 		)
 	}
 	csiv, err := k.Get(name, opts)
 	if err != nil {
 		return nil, errors.Wrapf(
 			err,
-			"failed to get lvm node {%s} in namespace {%s}",
+			"failed to get device node {%s} in namespace {%s}",
 			name,
 			k.namespace,
 		)
@@ -370,14 +370,14 @@ func (k *Kubeclient) GetRaw(
 	return json.Marshal(csiv)
 }
 
-// List returns a list of lvm node
+// List returns a list of device node
 // instances present in kubernetes cluster
 func (k *Kubeclient) List(opts metav1.ListOptions) (*apis.DeviceNodeList, error) {
 	cli, err := k.getClientOrCached()
 	if err != nil {
 		return nil, errors.Wrapf(
 			err,
-			"failed to list lvm nodes in namespace {%s}",
+			"failed to list device nodes in namespace {%s}",
 			k.namespace,
 		)
 	}
@@ -385,19 +385,19 @@ func (k *Kubeclient) List(opts metav1.ListOptions) (*apis.DeviceNodeList, error)
 	return k.list(cli, k.namespace, opts)
 }
 
-// Delete deletes the lvm node from
+// Delete deletes the device node from
 // kubernetes
 func (k *Kubeclient) Delete(name string) error {
 	if name == "" {
 		return errors.New(
-			"failed to delete lvmnode: missing node name",
+			"failed to delete devicenode: missing node name",
 		)
 	}
 	cli, err := k.getClientOrCached()
 	if err != nil {
 		return errors.Wrapf(
 			err,
-			"failed to delete lvmnode {%s} in namespace {%s}",
+			"failed to delete devicenode {%s} in namespace {%s}",
 			name,
 			k.namespace,
 		)
@@ -406,13 +406,13 @@ func (k *Kubeclient) Delete(name string) error {
 	return k.del(cli, name, k.namespace, &metav1.DeleteOptions{})
 }
 
-// Update updates this lvm node instance
+// Update updates this device node instance
 // against kubernetes cluster
 func (k *Kubeclient) Update(node *apis.DeviceNode) (*apis.DeviceNode, error) {
 	if node == nil {
 		return nil,
 			errors.New(
-				"failed to update lvmnode: nil node object",
+				"failed to update devicenode: nil node object",
 			)
 	}
 
@@ -420,7 +420,7 @@ func (k *Kubeclient) Update(node *apis.DeviceNode) (*apis.DeviceNode, error) {
 	if err != nil {
 		return nil, errors.Wrapf(
 			err,
-			"failed to update lvmnode {%s} in namespace {%s}",
+			"failed to update devicenode {%s} in namespace {%s}",
 			node.Name,
 			node.Namespace,
 		)

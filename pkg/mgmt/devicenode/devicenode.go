@@ -86,19 +86,19 @@ func (c *NodeController) syncNode(namespace string, name string) error {
 		return nil
 	}
 
-	// lvm node already exists check if we need to update it.
+	// device node already exists check if we need to update it.
 	var updateRequired bool
 	// validate if owner reference updated.
 	if ownerRefs, req := c.isOwnerRefsUpdateRequired(node.OwnerReferences); req {
-		klog.Infof("lvm node controller: node owner references updated current=%+v, required=%+v",
+		klog.Infof("device node controller: node owner references updated current=%+v, required=%+v",
 			node.OwnerReferences, ownerRefs)
 		node.OwnerReferences = ownerRefs
 		updateRequired = true
 	}
 
-	// validate if node volume groups are upto date.
+	// validate if node devices are upto date.
 	if !equality.Semantic.DeepEqual(node.Devices, devices) {
-		klog.Infof("device node controller: node volume groups updated current=%+v, required=%+v",
+		klog.Infof("device node controller: node devices updated current=%+v, required=%+v",
 			node.Devices, devices)
 		node.Devices = devices
 		updateRequired = true
@@ -108,16 +108,16 @@ func (c *NodeController) syncNode(namespace string, name string) error {
 		return nil
 	}
 
-	klog.Infof("lvm node controller: updating node object with %+v", node)
+	klog.Infof("device node controller: updating node object with %+v", node)
 	if node, err = nodebuilder.NewKubeclient().WithNamespace(namespace).Update(node); err != nil {
-		return fmt.Errorf("update lvm node %s/%s: %v", namespace, name, err)
+		return fmt.Errorf("update device node %s/%s: %v", namespace, name, err)
 	}
-	klog.Infof("lvm node controller: updated node object %s/%s", namespace, name)
+	klog.Infof("device node controller: updated node object %s/%s", namespace, name)
 
 	return nil
 }
 
-// addNode is the add event handler for LVMNode
+// addNode is the add event handler for DeviceNode
 func (c *NodeController) addNode(obj interface{}) {
 	node, ok := obj.(*apis.DeviceNode)
 	if !ok {
@@ -125,11 +125,11 @@ func (c *NodeController) addNode(obj interface{}) {
 		return
 	}
 
-	klog.Infof("Got add event for lvm node %s/%s", node.Namespace, node.Name)
+	klog.Infof("Got add event for device node %s/%s", node.Namespace, node.Name)
 	c.enqueueNode(node)
 }
 
-// updateNode is the update event handler for LVMNode
+// updateNode is the update event handler for DeviceNode
 func (c *NodeController) updateNode(oldObj, newObj interface{}) {
 	newNode, ok := newObj.(*apis.DeviceNode)
 	if !ok {
@@ -137,11 +137,11 @@ func (c *NodeController) updateNode(oldObj, newObj interface{}) {
 		return
 	}
 
-	klog.Infof("Got update event for lvm node %s/%s", newNode.Namespace, newNode.Name)
+	klog.Infof("Got update event for device node %s/%s", newNode.Namespace, newNode.Name)
 	c.enqueueNode(newNode)
 }
 
-// deleteNode is the delete event handler for LVMNode
+// deleteNode is the delete event handler for DeviceNode
 func (c *NodeController) deleteNode(obj interface{}) {
 	node, ok := obj.(*apis.DeviceNode)
 	if !ok {
@@ -152,7 +152,7 @@ func (c *NodeController) deleteNode(obj interface{}) {
 		}
 		node, ok = tombstone.Obj.(*apis.DeviceNode)
 		if !ok {
-			runtime.HandleError(fmt.Errorf("Tombstone contained object that is not a LVMNode %#v", obj))
+			runtime.HandleError(fmt.Errorf("Tombstone contained object that is not a DeviceNode %#v", obj))
 			return
 		}
 	}
@@ -161,9 +161,9 @@ func (c *NodeController) deleteNode(obj interface{}) {
 	c.enqueueNode(node)
 }
 
-// enqueueNode takes a LVMNode resource and converts it into a namespace/name
+// enqueueNode takes a DeviceNode resource and converts it into a namespace/name
 // string which is then put onto the work queue. This method should *not* be
-// passed resources of any type other than LVMNode.
+// passed resources of any type other than DeviceNode.
 func (c *NodeController) enqueueNode(node *apis.DeviceNode) {
 	// node must exists in openebs namespace & must equal to the node id.
 	if node.Namespace != device.DeviceNamespace ||
@@ -285,7 +285,7 @@ func (c *NodeController) processNextWorkItem() bool {
 }
 
 // isOwnerRefUpdateRequired validates if relevant owner references is being
-// set for lvm node. If not, it returns the final owner references that needs
+// set for device node. If not, it returns the final owner references that needs
 // to be set.
 func (c *NodeController) isOwnerRefsUpdateRequired(ownerRefs []metav1.OwnerReference) ([]metav1.OwnerReference, bool) {
 	updated := false

@@ -32,7 +32,7 @@ type Builder struct {
 // DeviceNode is a wrapper over
 // DeviceNode API instance
 type DeviceNode struct {
-	// LVMVolume object
+	// DeviceVolume object
 	Object *apis.DeviceNode
 }
 
@@ -92,7 +92,7 @@ func (b *Builder) WithName(name string) *Builder {
 		b.errs = append(
 			b.errs,
 			errors.New(
-				"failed to build lvm node object: missing name",
+				"failed to build device node object: missing name",
 			),
 		)
 		return b

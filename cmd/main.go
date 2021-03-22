@@ -46,7 +46,7 @@ func main() {
 		Use:   "device-driver",
 		Short: "driver for provisioning disk volume",
 		Long: `provisions and deprovisions the volume
-		    on the node which has volume group configured.`,
+		    on the node which has devices configured.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			run(config)
 		},

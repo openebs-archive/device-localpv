@@ -27,10 +27,10 @@ import (
 
 // scheduling algorithm constants
 const (
-	// pick the node where less volumes are provisioned for the given volume group
+	// pick the node where less volumes are provisioned for the given device name
 	VolumeWeighted = "VolumeWeighted"
 
-	// pick the node where total provisioned volumes have occupied less capacity from the given volume group
+	// pick the node where total provisioned volumes have occupied less capacity from the given device name
 	// this will be the default scheduler when none provided
 	CapacityWeighted = "CapacityWeighted"
 )
@@ -78,7 +78,7 @@ func getCapacityWeightedMap(deviceName string) (map[string]int64, error) {
 	}
 
 	// create the map of the volume capacity
-	// for the given volume group
+	// for the given device name
 	for _, vol := range volList.Items {
 		if vol.Spec.DevName == deviceName {
 			volSize, err := strconv.ParseInt(vol.Spec.Capacity, 10, 64)

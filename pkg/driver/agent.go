@@ -51,11 +51,11 @@ func NewNode(d *CSIDriver) csi.NodeServer {
 	// set up signals so we handle the first shutdown signal gracefully
 	stopCh := signals.SetupSignalHandler()
 
-	// start the lvm node resource watcher
+	// start the device node resource watcher
 	go func() {
 		err := devicenode.Start(&ControllerMutex, stopCh)
 		if err != nil {
-			klog.Fatalf("Failed to start LVM node controller: %s", err.Error())
+			klog.Fatalf("Failed to start Device node controller: %s", err.Error())
 		}
 	}()
 
@@ -63,7 +63,7 @@ func NewNode(d *CSIDriver) csi.NodeServer {
 	go func() {
 		err := volume.Start(&ControllerMutex, stopCh)
 		if err != nil {
-			klog.Fatalf("Failed to start ZFS volume management controller: %s", err.Error())
+			klog.Fatalf("Failed to start Device volume management controller: %s", err.Error())
 		}
 	}()
 

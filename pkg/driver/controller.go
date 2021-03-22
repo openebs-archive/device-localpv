@@ -136,7 +136,7 @@ func waitForDeviceVolume(ctx context.Context,
 	}
 
 	if reschedule {
-		// if rescheduling is required, we can deleted the existing lvm volume object,
+		// if rescheduling is required, we can deleted the existing device volume object,
 		// so that it can be recreated.
 		if err = device.DeleteVolume(vol.GetName()); err != nil {
 			return nil, false, status.Errorf(codes.Aborted,
@@ -188,11 +188,11 @@ func (cs *controller) init() error {
 	go cs.deviceNodeInformer.Run(stopCh)
 
 	// wait for all the caches to be populated.
-	klog.Info("waiting for k8s & lvm node informer caches to be synced")
+	klog.Info("waiting for k8s & device node informer caches to be synced")
 	cache.WaitForCacheSync(stopCh,
 		cs.k8sNodeInformer.HasSynced,
 		cs.deviceNodeInformer.HasSynced)
-	klog.Info("synced k8s & lvm node informer caches")
+	klog.Info("synced k8s & device node informer caches")
 	return nil
 }
 
