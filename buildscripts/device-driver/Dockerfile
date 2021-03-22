@@ -13,7 +13,7 @@
 # limitations under the License.
 
 FROM alpine:3.12
-RUN apk add --no-cache device2 device2-extra util-linux device-mapper
+RUN apk add --no-cache util-linux
 RUN apk add --no-cache btrfs-progs xfsprogs e2fsprogs e2fsprogs-extra
 RUN apk add --no-cache ca-certificates libc6-compat
 
