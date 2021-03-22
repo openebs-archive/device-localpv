@@ -83,15 +83,14 @@ func (c *VolController) syncVol(vol *apis.DeviceVolume) error {
 			err = device.RemoveVolFinalizer(vol)
 		}
 		return err
-	} else {
-		// if finalizer is not set then it means we are creating
-		// the volume. And if it is set then volume has already been
-		// created and this event is for property change only.
-		if vol.Status.State != device.DeviceStatusReady {
-			err = device.CreateVolume(vol)
-			if err == nil {
-				err = device.UpdateVolInfo(vol)
-			}
+	}
+	// if finalizer is not set then it means we are creating
+	// the volume. And if it is set then volume has already been
+	// created and this event is for property change only.
+	if vol.Status.State != device.DeviceStatusReady {
+		err = device.CreateVolume(vol)
+		if err == nil {
+			err = device.UpdateVolInfo(vol)
 		}
 	}
 	return err

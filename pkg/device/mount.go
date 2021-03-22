@@ -170,7 +170,10 @@ func MountVolume(vol *apis.DeviceVolume, mount *MountInfo) error {
 		return nil
 	}
 
-	devicePath := DevPath + vol.Spec.DevName
+	devicePath, err := GetVolumeDevPath(vol)
+	if err != nil {
+		return status.Error(codes.Internal, "Not able to find the device Path")
+	}
 
 	err = FormatAndMountVol(devicePath, mount)
 	if err != nil {

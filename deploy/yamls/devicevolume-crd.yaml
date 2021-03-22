@@ -71,7 +71,8 @@ spec:
               minLength: 1
               type: string
             devname:
-              description: device name
+              description: device name this is the name that will be stored on the
+                meta partition on the disk
               minLength: 1
               type: string
             ownerNodeID:
