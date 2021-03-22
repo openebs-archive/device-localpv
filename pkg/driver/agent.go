@@ -17,6 +17,7 @@ limitations under the License.
 package driver
 
 import (
+	"github.com/openebs/device-localpv/pkg/mgmt/devicenode"
 	"strings"
 	"sync"
 
@@ -50,7 +51,15 @@ func NewNode(d *CSIDriver) csi.NodeServer {
 	// set up signals so we handle the first shutdown signal gracefully
 	stopCh := signals.SetupSignalHandler()
 
-	// start the device  watcher
+	// start the lvm node resource watcher
+	go func() {
+		err := devicenode.Start(&ControllerMutex, stopCh)
+		if err != nil {
+			klog.Fatalf("Failed to start LVM node controller: %s", err.Error())
+		}
+	}()
+
+	// start the device volume  watcher
 	go func() {
 		err := volume.Start(&ControllerMutex, stopCh)
 		if err != nil {

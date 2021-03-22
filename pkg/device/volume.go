@@ -15,12 +15,18 @@
 package device
 
 import (
+	"context"
 	"os"
+	"time"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	k8serror "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/klog"
 
 	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
 	"github.com/openebs/device-localpv/pkg/builder/volbuilder"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/klog"
 )
 
 const (
@@ -146,4 +152,50 @@ func RemoveVolFinalizer(vol *apis.DeviceVolume) error {
 
 	_, err := volbuilder.NewKubeclient().WithNamespace(DeviceNamespace).Update(vol)
 	return err
+}
+
+// WaitForDeviceVolumeProcessed waits till the lvm volume becomes
+// ready or failed (i.e reaches to terminal state).
+func WaitForDeviceVolumeProcessed(ctx context.Context, volumeID string) (*apis.DeviceVolume, error) {
+	timer := time.NewTimer(0)
+	defer timer.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, status.FromContextError(ctx.Err())
+		case <-timer.C:
+		}
+		vol, err := GetDeviceVolume(volumeID)
+		if err != nil {
+			return nil, status.Errorf(codes.Aborted,
+				"device: wait failed, not able to get the volume %s %s", volumeID, err.Error())
+		}
+		if vol.Status.State == DeviceStatusReady ||
+			vol.Status.State == DeviceStatusFailed {
+			return vol, nil
+		}
+		timer.Reset(1 * time.Second)
+	}
+}
+
+// WaitForDeviceVolumeDestroy waits till the lvm volume gets deleted.
+func WaitForDeviceVolumeDestroy(ctx context.Context, volumeID string) error {
+	timer := time.NewTimer(0)
+	defer timer.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return status.FromContextError(ctx.Err())
+		case <-timer.C:
+		}
+		_, err := GetDeviceVolume(volumeID)
+		if err != nil {
+			if k8serror.IsNotFound(err) {
+				return nil
+			}
+			return status.Errorf(codes.Aborted,
+				"lvm: destroy wait failed, not able to get the volume %s %s", volumeID, err.Error())
+		}
+		timer.Reset(1 * time.Second)
+	}
 }

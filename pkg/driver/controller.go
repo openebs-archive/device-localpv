@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
+	k8sapi "github.com/openebs/lib-csi/pkg/client/k8s"
 	"github.com/openebs/lib-csi/pkg/common/errors"
 	"github.com/openebs/lib-csi/pkg/common/helpers"
 	schd "github.com/openebs/lib-csi/pkg/scheduler"
@@ -31,12 +32,17 @@ import (
 	k8serror "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/labels"
+	kubeinformers "k8s.io/client-go/informers"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog"
+	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
 
 	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
 	"github.com/openebs/device-localpv/pkg/builder/volbuilder"
 	"github.com/openebs/device-localpv/pkg/device"
+	clientset "github.com/openebs/device-localpv/pkg/generated/clientset/internalclientset"
+	informers "github.com/openebs/device-localpv/pkg/generated/informer/externalversions"
 	csipayload "github.com/openebs/device-localpv/pkg/response"
 )
 
@@ -53,15 +59,26 @@ const (
 type controller struct {
 	driver       *CSIDriver
 	capabilities []*csi.ControllerServiceCapability
+
+	indexedLabel string
+
+	k8sNodeInformer    cache.SharedIndexInformer
+	deviceNodeInformer cache.SharedIndexInformer
 }
 
 // NewController returns a new instance
 // of CSI controller
 func NewController(d *CSIDriver) csi.ControllerServer {
-	return &controller{
+	ctrl := &controller{
 		driver:       d,
 		capabilities: newControllerCapabilities(),
 	}
+
+	if err := ctrl.init(); err != nil {
+		klog.Fatalf("init controller: %v", err)
+	}
+
+	return ctrl
 }
 
 // SupportedVolumeCapabilityAccessModes contains the list of supported access
@@ -99,7 +116,7 @@ func waitForDeviceVolume(ctx context.Context,
 	var reschedule bool // tracks if rescheduling is required or not.
 	var err error
 	if vol.Status.State == device.DeviceStatusPending {
-		if vol, err = device.WaitForLVMVolumeProcessed(ctx, vol.GetName()); err != nil {
+		if vol, err = device.WaitForDeviceVolumeProcessed(ctx, vol.GetName()); err != nil {
 			return nil, false, err
 		}
 	}
@@ -109,7 +126,7 @@ func waitForDeviceVolume(ctx context.Context,
 	}
 
 	// Now it must be in failed state if not above. See if we need
-	// to reschedule the lvm volume.
+	// to reschedule the device volume.
 	var errMsg string
 	if volErr := vol.Status.Error; volErr != nil {
 		errMsg = volErr.Message
@@ -125,7 +142,7 @@ func waitForDeviceVolume(ctx context.Context,
 			return nil, false, status.Errorf(codes.Aborted,
 				"failed to delete volume %v: %v", vol.GetName(), err)
 		}
-		if err = device.WaitForLVMVolumeDestroy(ctx, vol.GetName()); err != nil {
+		if err = device.WaitForDeviceVolumeDestroy(ctx, vol.GetName()); err != nil {
 			return nil, false, status.Errorf(codes.Aborted,
 				"failed to delete volume %v: %v", vol.GetName(), err)
 		}
@@ -133,6 +150,50 @@ func waitForDeviceVolume(ctx context.Context,
 	}
 
 	return vol, false, status.Error(codes.Aborted, errMsg)
+}
+
+func (cs *controller) init() error {
+	cfg, err := k8sapi.Config().Get()
+	if err != nil {
+		return errors.Wrapf(err, "failed to build kubeconfig")
+	}
+
+	kubeClient, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		return errors.Wrap(err, "failed to build k8s clientset")
+	}
+
+	openebsClient, err := clientset.NewForConfig(cfg)
+	if err != nil {
+		return errors.Wrap(err, "failed to build openebs clientset")
+	}
+
+	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, 0)
+	openebsInformerfactory := informers.NewSharedInformerFactoryWithOptions(openebsClient,
+		0, informers.WithNamespace(device.DeviceNamespace))
+
+	// set up signals so we handle the first shutdown signal gracefully
+	stopCh := signals.SetupSignalHandler()
+
+	cs.k8sNodeInformer = kubeInformerFactory.Core().V1().Nodes().Informer()
+	cs.deviceNodeInformer = openebsInformerfactory.Local().V1alpha1().DeviceNodes().Informer()
+
+	if err = cs.deviceNodeInformer.AddIndexers(map[string]cache.IndexFunc{
+		LabelIndexName(cs.indexedLabel): LabelIndexFunc(cs.indexedLabel),
+	}); err != nil {
+		return errors.Wrapf(err, "failed to add index on label %v", cs.indexedLabel)
+	}
+
+	go cs.k8sNodeInformer.Run(stopCh)
+	go cs.deviceNodeInformer.Run(stopCh)
+
+	// wait for all the caches to be populated.
+	klog.Info("waiting for k8s & lvm node informer caches to be synced")
+	cache.WaitForCacheSync(stopCh,
+		cs.k8sNodeInformer.HasSynced,
+		cs.deviceNodeInformer.HasSynced)
+	klog.Info("synced k8s & lvm node informer caches")
+	return nil
 }
 
 // CreateDeviceVolume create new device volume for csi volume request
@@ -153,7 +214,7 @@ func CreateDeviceVolume(ctx context.Context, req *csi.CreateVolumeRequest,
 
 	if vol != nil {
 		if vol.DeletionTimestamp != nil {
-			if err = device.WaitForLVMVolumeDestroy(ctx, volName); err != nil {
+			if err = device.WaitForDeviceVolumeDestroy(ctx, volName); err != nil {
 				return nil, err
 			}
 		} else {
@@ -450,30 +511,30 @@ func (cs *controller) GetCapacity(
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	lvmNodesCache := cs.lvmNodeInformer.GetIndexer()
+	deviceNodeCache := cs.deviceNodeInformer.GetIndexer()
 	params := req.GetParameters()
-	vgParam := helpers.GetInsensitiveParameter(&params, "volgroup")
+	deviceParam := helpers.GetInsensitiveParameter(&params, "deviceName")
 
 	var availableCapacity int64
 	for _, nodeName := range nodeNames {
-		v, exists, err := lvmNodesCache.GetByKey(device.DeviceNamespace + "/" + nodeName)
+		v, exists, err := deviceNodeCache.GetByKey(device.DeviceNamespace + "/" + nodeName)
 		if err != nil {
-			klog.Warning("unexpected error after querying the lvmNode informer cache")
+			klog.Warning("unexpected error after querying the deviceNode informer cache")
 			continue
 		}
 		if !exists {
 			continue
 		}
-		lvmNode := v.(*apis.De)
+		deviceNode := v.(*apis.DeviceNode)
 		// rather than summing all free capacity, we are calculating maximum
-		// lv size that gets fit in given vg.
+		// partition size that gets fit in given device.
 		// See https://github.com/kubernetes/enhancements/tree/master/keps/sig-storage/1472-storage-capacity-tracking#available-capacity-vs-maximum-volume-size &
 		// https://github.com/container-storage-interface/spec/issues/432 for more details
-		for _, vg := range lvmNode.VolumeGroups {
-			if vg.Name != vgParam {
+		for _, device := range deviceNode.Devices {
+			if device.Name != deviceParam {
 				continue
 			}
-			freeCapacity := vg.Free.Value()
+			freeCapacity := device.Free.Value()
 			if availableCapacity < freeCapacity {
 				availableCapacity = freeCapacity
 			}

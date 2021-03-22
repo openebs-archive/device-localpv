@@ -211,8 +211,8 @@ func RunCommand(cList []string) (string, error) {
 }
 
 // GetDiskList Todo
-func GetDiskList() ([]string, error) {
-	var result []string
+func GetDiskList() ([]apis.Device, error) {
+	var result []apis.Device
 	out, err := RunCommand(strings.Split(fmt.Sprintf(PartitionDiskList), " "))
 	if err != nil {
 		klog.Errorf("Device LocalPV: could not list disk error: %s %s", string(out), err)
@@ -225,7 +225,9 @@ func GetDiskList() ([]string, error) {
 			continue
 		}
 		if tmp[5] == "disk" {
-			result = append(result, tmp[0])
+			result = append(result, apis.Device{
+				Name: tmp[0],
+			})
 		}
 	}
 	return result, nil
