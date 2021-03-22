@@ -81,14 +81,14 @@ func CreatePart(disk string, start int, partitionName string, size int) error {
 
 // GetAllPartsUsed Todo
 func getAllPartsUsed(diskName string, partitionName string) ([]partUsed, error) {
-	list, err := GetDiskList()
+	diskList, err := GetDiskList()
 	if err != nil {
 		klog.Errorf("GetDiskList failed %s", err)
 		return nil, err
 	}
 	var pList []partUsed
-	for _, disk := range list {
-		tmpList, err := GetPartitionList(disk, diskName, false)
+	for _, disk := range diskList {
+		tmpList, err := GetPartitionList(disk.Name, diskName, false)
 		if err != nil {
 			klog.Infof("GetPart Error, %s", disk)
 			continue
@@ -96,7 +96,7 @@ func getAllPartsUsed(diskName string, partitionName string) ([]partUsed, error) 
 		for _, tmp := range tmpList {
 			if tmp[len(tmp)-1] == partitionName {
 				partNum, _ := strconv.ParseInt(tmp[0], 10, 32)
-				pList = append(pList, partUsed{disk, int(partNum)})
+				pList = append(pList, partUsed{disk.Name, int(partNum)})
 			}
 		}
 	}
@@ -179,20 +179,20 @@ func GetVolumeDevPath(vol *apis.DeviceVolume) (string, error) {
 	//func GetPath(diskName string, partitionName string) (string, error) {
 	diskName := vol.Spec.DevName
 	partitionName := vol.Name
-	list, err := GetDiskList()
+	diskList, err := GetDiskList()
 	if err != nil {
 		klog.Errorf("GetDiskList failed %s", err)
 		return "", err
 	}
-	for _, disk := range list {
-		pList, err := GetPartitionList(disk, diskName, true)
+	for _, disk := range diskList {
+		pList, err := GetPartitionList(disk.Name, diskName, true)
 		if err != nil {
 			klog.Infof("GetPart Error, %s", disk)
 			continue
 		}
 		for _, tmp := range pList {
 			if tmp[len(tmp)-1] == partitionName {
-				return disk + tmp[0], nil
+				return disk.Name + tmp[0], nil
 			}
 		}
 	}
@@ -250,14 +250,14 @@ func GetDiskList() ([]apis.Device, error) {
 
 // getAllPartsFree Todo
 func getAllPartsFree(diskName string) ([]partFree, error) {
-	list, err := GetDiskList()
+	diskList, err := GetDiskList()
 	if err != nil {
 		klog.Errorf("GetDiskList failed %s", err)
 		return nil, err
 	}
 	var pList []partFree
-	for _, disk := range list {
-		tmpList, err := GetPartitionList(disk, diskName, true)
+	for _, disk := range diskList {
+		tmpList, err := GetPartitionList(disk.Name, diskName, true)
 		if err != nil {
 			klog.Infof("GetPart Error, %s", disk)
 			continue
@@ -268,7 +268,7 @@ func getAllPartsFree(diskName string) ([]partFree, error) {
 				end, _ := strconv.ParseFloat(string(tmp[1][:len(tmp[1])-3]), 32)
 				size := int(math.Floor(end) - math.Ceil(begin))
 				fmt.Println(begin, end, size)
-				pList = append(pList, partFree{disk, int(math.Ceil(begin)), int(math.Floor(end)), size})
+				pList = append(pList, partFree{disk.Name, int(math.Ceil(begin)), int(math.Floor(end)), size})
 			}
 		}
 	}
