@@ -53,6 +53,8 @@ func (f *genericInformer) Lister() cache.GenericLister {
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
 	// Group=local.openebs.io, Version=v1alpha1
+	case v1alpha1.SchemeGroupVersion.WithResource("devicenodes"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Local().V1alpha1().DeviceNodes().Informer()}, nil
 	case v1alpha1.SchemeGroupVersion.WithResource("devicevolumes"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Local().V1alpha1().DeviceVolumes().Informer()}, nil
 

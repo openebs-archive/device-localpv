@@ -18,6 +18,14 @@ limitations under the License.
 
 package v1alpha1
 
+// DeviceNodeListerExpansion allows custom methods to be added to
+// DeviceNodeLister.
+type DeviceNodeListerExpansion interface{}
+
+// DeviceNodeNamespaceListerExpansion allows custom methods to be added to
+// DeviceNodeNamespaceLister.
+type DeviceNodeNamespaceListerExpansion interface{}
+
 // DeviceVolumeListerExpansion allows custom methods to be added to
 // DeviceVolumeLister.
 type DeviceVolumeListerExpansion interface{}

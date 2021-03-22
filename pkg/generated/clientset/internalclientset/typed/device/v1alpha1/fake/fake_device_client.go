@@ -28,6 +28,10 @@ type FakeLocalV1alpha1 struct {
 	*testing.Fake
 }
 
+func (c *FakeLocalV1alpha1) DeviceNodes(namespace string) v1alpha1.DeviceNodeInterface {
+	return &FakeDeviceNodes{c, namespace}
+}
+
 func (c *FakeLocalV1alpha1) DeviceVolumes(namespace string) v1alpha1.DeviceVolumeInterface {
 	return &FakeDeviceVolumes{c, namespace}
 }
