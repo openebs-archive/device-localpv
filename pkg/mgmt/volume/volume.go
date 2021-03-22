@@ -72,23 +72,25 @@ func (c *VolController) enqueueVol(obj interface{}) {
 
 }
 
-// synVol is the function which tries to converge to a desired state for the
+// syncVol is the function which tries to converge to a desired state for the
 // DeviceVolume
-func (c *VolController) syncVol(Vol *apis.DeviceVolume) error {
+func (c *VolController) syncVol(vol *apis.DeviceVolume) error {
 	var err error
 	// Device Volume should be deleted. Check if deletion timestamp is set
-	if c.isDeletionCandidate(Vol) {
+	if c.isDeletionCandidate(vol) {
+		err = device.DestroyVolume(vol)
 		if err == nil {
-			err = device.RemoveVolFinalizer(Vol)
+			err = device.RemoveVolFinalizer(vol)
 		}
-	} else {
-		// if finalizer is not set then it means we are creating
-		// the volume. And if it is set then volume has already been
-		// created and this event is for property change only.
-		if Vol.Status.State != device.DeviceStatusReady {
-			if err == nil {
-				err = device.UpdateVolInfo(Vol)
-			}
+		return err
+	}
+	// if finalizer is not set then it means we are creating
+	// the volume. And if it is set then volume has already been
+	// created and this event is for property change only.
+	if vol.Status.State != device.DeviceStatusReady {
+		err = device.CreateVolume(vol)
+		if err == nil {
+			err = device.UpdateVolInfo(vol)
 		}
 	}
 	return err

@@ -65,6 +65,7 @@ type VolumeInfo struct {
 	Capacity string `json:"capacity"`
 
 	// device name
+	// this is the name that will be stored on the meta partition on the disk
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:MinLength=1
 	DevName string `json:"devname"`
