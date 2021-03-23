@@ -17,15 +17,10 @@ limitations under the License.
 package driver
 
 import (
-	"github.com/openebs/device-localpv/pkg/mgmt/devicenode"
 	"strings"
 	"sync"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
-	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
-	"github.com/openebs/device-localpv/pkg/builder/volbuilder"
-	"github.com/openebs/device-localpv/pkg/device"
-	"github.com/openebs/device-localpv/pkg/mgmt/volume"
 	k8sapi "github.com/openebs/lib-csi/pkg/client/k8s"
 	"github.com/openebs/lib-csi/pkg/mount"
 	"golang.org/x/net/context"
@@ -35,6 +30,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
+
+	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
+	"github.com/openebs/device-localpv/pkg/builder/volbuilder"
+	"github.com/openebs/device-localpv/pkg/device"
+	"github.com/openebs/device-localpv/pkg/mgmt/devicenode"
+	"github.com/openebs/device-localpv/pkg/mgmt/volume"
 )
 
 // node is the server implementation
@@ -126,7 +127,7 @@ func (ns *node) NodePublishVolume(
 	case *csi.VolumeCapability_Mount:
 		err = device.MountFilesystem(vol, mountInfo)
 	case *csi.VolumeCapability_Block:
-		// TODO @akhilerm
+		err = device.MountBlock(vol, mountInfo)
 	}
 
 	if err != nil {
