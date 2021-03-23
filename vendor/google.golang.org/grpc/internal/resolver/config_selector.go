@@ -29,10 +29,8 @@ import (
 
 // ConfigSelector controls what configuration to use for every RPC.
 type ConfigSelector interface {
-	// Selects the configuration for the RPC, or terminates it using the error.
-	// This error will be converted by the gRPC library to a status error with
-	// code UNKNOWN if it is not returned as a status error.
-	SelectConfig(RPCInfo) (*RPCConfig, error)
+	// Selects the configuration for the RPC.
+	SelectConfig(RPCInfo) *RPCConfig
 }
 
 // RPCInfo contains RPC information needed by a ConfigSelector.
@@ -88,7 +86,7 @@ func (scs *SafeConfigSelector) UpdateConfigSelector(cs ConfigSelector) {
 }
 
 // SelectConfig defers to the current ConfigSelector in scs.
-func (scs *SafeConfigSelector) SelectConfig(r RPCInfo) (*RPCConfig, error) {
+func (scs *SafeConfigSelector) SelectConfig(r RPCInfo) *RPCConfig {
 	scs.mu.RLock()
 	defer scs.mu.RUnlock()
 	return scs.cs.SelectConfig(r)
