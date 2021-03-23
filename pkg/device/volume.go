@@ -162,7 +162,7 @@ func WaitForDeviceVolumeProcessed(ctx context.Context, volumeID string) (*apis.D
 	for {
 		select {
 		case <-ctx.Done():
-			return nil, status.FromContextError(ctx.Err())
+			return nil, status.FromContextError(ctx.Err()).Err()
 		case <-timer.C:
 		}
 		vol, err := GetDeviceVolume(volumeID)
@@ -185,7 +185,7 @@ func WaitForDeviceVolumeDestroy(ctx context.Context, volumeID string) error {
 	for {
 		select {
 		case <-ctx.Done():
-			return status.FromContextError(ctx.Err())
+			return status.FromContextError(ctx.Err()).Err()
 		case <-timer.C:
 		}
 		_, err := GetDeviceVolume(volumeID)
