@@ -35,7 +35,7 @@ import (
 )
 
 func (c *NodeController) listDeviceNames() ([]apis.Device, error) {
-	return device.GetDiskList()
+	return device.GetDiskDetails()
 }
 
 // syncHandler compares the actual state with the desired, and attempts to
