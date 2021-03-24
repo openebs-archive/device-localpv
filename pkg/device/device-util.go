@@ -90,7 +90,7 @@ func getAllPartsUsed(diskName string, partitionName string) ([]partUsed, error) 
 	for _, disk := range diskList {
 		tmpList, err := GetPartitionList(disk.Name, diskName, false)
 		if err != nil {
-			klog.Infof("GetPart Error, %s", disk)
+			klog.Infof("GetPart Error, %s", disk.Name)
 			continue
 		}
 		for _, tmp := range tmpList {
@@ -187,7 +187,7 @@ func GetVolumeDevPath(vol *apis.DeviceVolume) (string, error) {
 	for _, disk := range diskList {
 		pList, err := GetPartitionList(disk.Name, diskName, true)
 		if err != nil {
-			klog.Infof("GetPart Error, %s", disk)
+			klog.Infof("GetPart Error, %s", disk.Name)
 			continue
 		}
 		for _, tmp := range pList {
@@ -259,7 +259,7 @@ func getAllPartsFree(diskName string) ([]partFree, error) {
 	for _, disk := range diskList {
 		tmpList, err := GetPartitionList(disk.Name, diskName, true)
 		if err != nil {
-			klog.Infof("GetPart Error, %s", disk)
+			klog.Infof("GetPart Error, %s", disk.Name)
 			continue
 		}
 		for _, tmp := range tmpList {
