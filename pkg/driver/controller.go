@@ -291,9 +291,9 @@ func (cs *controller) CreateVolume(
 	var vol *apis.DeviceVolume
 	if contentSource != nil && contentSource.GetVolume() != nil {
 		return nil, status.Error(codes.Unimplemented, "")
-	} else {
-		vol, err = CreateDeviceVolume(ctx, req, params)
 	}
+
+	vol, err = CreateDeviceVolume(ctx, req, params)
 
 	if err != nil {
 		return nil, err

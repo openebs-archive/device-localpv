@@ -1,3 +1,5 @@
+package device
+
 /*
 Copyright 2017 The Kubernetes Authors.
 
@@ -13,16 +15,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package device
 
 import (
 	"fmt"
 	"github.com/openebs/lib-csi/pkg/common/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/klog"
-	"regexp"
 	"math"
 	"os/exec"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -32,7 +33,7 @@ import (
 
 // Partition Commands
 const (
-	PartitionDiskId	   = "fdisk -l /dev/%s"
+	PartitionDiskID    = "fdisk -l /dev/%s"
 	PartitionDiskList  = "lsblk -b"
 	PartitionPrintFree = "parted /dev/%s unit b print free --script"
 	PartitionPrint     = "parted /dev/%s unit b print --script"
@@ -41,19 +42,19 @@ const (
 )
 
 type partUsed struct {
-	DiskName    string
-	PartNum uint32
+	DiskName string
+	PartNum  uint32
 }
 type partFree struct {
-	DiskName  string
+	DiskName string
 	StartMiB uint64
 	EndMiB   uint64
 	SizeMiB  uint64
 }
 
 type diskDetail struct {
-	DiskName	string
-	Size 	uint64
+	DiskName string
+	Size     uint64
 }
 
 // CreateVolume Todo
@@ -90,7 +91,6 @@ func createPart(disk string, start uint64, partitionName string, size uint64) er
 	_, err := RunCommand(strings.Split(fmt.Sprintf(PartitionCreate, disk, partitionName, start, start+size), " "))
 	return err
 }
-
 
 // getAllPartsFree Todo
 func getAllPartsFree(diskName string) ([]partFree, error) {
@@ -145,7 +145,7 @@ func getAllPartsUsed(diskMetaName string, partitionName string) ([]partUsed, err
 	for _, disk := range diskList {
 		tmpList, err := GetPartitionList(disk.DiskName, diskMetaName, false)
 		if err != nil {
-			klog.Infof("GetPart Error, %s", disk)
+			klog.Infof("GetPart Error, %+v", disk)
 			continue
 		}
 		for _, tmp := range tmpList {
@@ -158,7 +158,6 @@ func getAllPartsUsed(diskMetaName string, partitionName string) ([]partUsed, err
 	return pList, nil
 
 }
-
 
 // DestroyVolume Todo
 func DestroyVolume(vol *apis.DeviceVolume) error {
@@ -207,7 +206,6 @@ func GetVolumeDevPath(vol *apis.DeviceVolume) (string, error) {
 	return fmt.Sprintf("%s%d", pList[0].DiskName, pList[0].PartNum), nil
 
 }
-
 
 // RunCommand Todo
 func RunCommand(cList []string) (string, error) {
@@ -277,12 +275,13 @@ func getPartsFree(diskName string, diskMetaName string) ([]partFree, error) {
 			if endMib > beginMib {
 				size = uint64(endMib - beginMib)
 			}
-			pList = append(pList, partFree{diskName,  uint64(beginMib),  uint64(endMib),  size})
+			pList = append(pList, partFree{diskName, uint64(beginMib), uint64(endMib), size})
 		}
 	}
 	return pList, nil
 }
 
+// GetFreeCapacity Todo
 func GetFreeCapacity(diskName string) (uint64, error) {
 	pList, err := getPartsFree(diskName, "")
 	if err != nil {
@@ -300,7 +299,6 @@ func GetFreeCapacity(diskName string) (uint64, error) {
 	return 0, err
 }
 
-
 // GetDiskList Todo
 func getDiskList() ([]diskDetail, error) {
 	var result []diskDetail
@@ -316,15 +314,15 @@ func getDiskList() ([]diskDetail, error) {
 			continue
 		}
 		if tmp[5] == "disk" {
-			tsize, _ := strconv.ParseUint(tmp[3], 10,64)
-			result = append(result, diskDetail{tmp[0],tsize})
+			tsize, _ := strconv.ParseUint(tmp[3], 10, 64)
+			result = append(result, diskDetail{tmp[0], tsize})
 		}
 	}
 	return result, nil
 }
 
 func getDiskIdentifier(disk string) (string, error) {
-	out, err := RunCommand(strings.Split(fmt.Sprintf(PartitionDiskId, disk), " "))
+	out, err := RunCommand(strings.Split(fmt.Sprintf(PartitionDiskID, disk), " "))
 	if err != nil {
 		klog.Errorf("Device LocalPV: could not list disk error: %s %s", string(out), err)
 		return "", err
@@ -335,11 +333,11 @@ func getDiskIdentifier(disk string) (string, error) {
 		if len(tmp) == 0 {
 			continue
 		}
-		if tmp[0] == "Disklabel"  && tmp[1] == "type:" && tmp [2] != "gpt" {
+		if tmp[0] == "Disklabel" && tmp[1] == "type:" && tmp[2] != "gpt" {
 			return "", errors.New("Not an GPT disk")
 		}
 		if tmp[0] == "Disk" && tmp[1] == "identifier:" {
-			return 	tmp[2], nil
+			return tmp[2], nil
 		}
 	}
 	return "", errors.New("Invalid Disk")

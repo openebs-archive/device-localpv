@@ -90,6 +90,17 @@ spec:
           description: VolStatus string that specifies the current state of the volume
             provisioning request.
           properties:
+            error:
+              description: Error denotes the error occurred during provisioning a
+                volume. Error field should only be set when State becomes Failed.
+              properties:
+                code:
+                  description: VolumeErrorCode represents the error code to represent
+                    specific class of errors.
+                  type: string
+                message:
+                  type: string
+              type: object
             state:
               description: State specifies the current state of the volume provisioning
                 request. The state "Pending" means that the volume creation request
