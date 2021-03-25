@@ -13,13 +13,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
 package device
 
 import (
 	"fmt"
 	"github.com/openebs/lib-csi/pkg/common/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/klog"
+	"regexp"
 	"math"
 	"os/exec"
 	"sort"
@@ -31,32 +32,44 @@ import (
 
 // Partition Commands
 const (
-	PartitionDiskList  = "lsblk"
-	PartitionPrintFree = "parted /dev/%s unit MiB print free --script"
-	PartitionPrint     = "parted /dev/%s unit MiB print --script"
+	PartitionDiskId	   = "fdisk -l /dev/%s"
+	PartitionDiskList  = "lsblk -b"
+	PartitionPrintFree = "parted /dev/%s unit b print free --script"
+	PartitionPrint     = "parted /dev/%s unit b print --script"
 	PartitionCreate    = "parted /dev/%s mkpart %s %dMiB %dMiB --script"
 	PartitionDelete    = "parted /dev/%s rm %d --script"
 )
 
 type partUsed struct {
-	disk    string
-	partNum int
+	DiskName    string
+	PartNum uint32
 }
 type partFree struct {
-	disk  string
-	start int
-	end   int
-	size  int
+	DiskName  string
+	StartMiB uint64
+	EndMiB   uint64
+	SizeMiB  uint64
+}
+
+type diskDetail struct {
+	DiskName	string
+	Size 	uint64
 }
 
 // CreateVolume Todo
 func CreateVolume(vol *apis.DeviceVolume) error {
 	//func CreatePartition(diskName string, partitionName string, size int) error {
-	diskName := vol.Spec.DevName
+	diskMetaName := vol.Spec.DevName
 	partitionName := vol.Name
-	// ToDo Capacity is assumed to be in MiB
-	size, _ := strconv.Atoi(vol.Spec.Capacity)
-	pList, err := getAllPartsUsed(diskName, partitionName)
+
+	capacityBytes, err := strconv.ParseInt(vol.Spec.Capacity, 10, 64)
+	if err != nil {
+		klog.Warning("error parsing vol.Spec.Capacity. Skipping CreateVolume", err)
+		return err
+	}
+	capacityMiB := uint64(math.Floor(float64(capacityBytes) / (1024 * 1024)))
+
+	pList, err := getAllPartsUsed(diskMetaName, partitionName)
 	if err != nil {
 		klog.Errorf("GetAllPartsUsed failed %s", err)
 		return err
@@ -65,38 +78,80 @@ func CreateVolume(vol *apis.DeviceVolume) error {
 		klog.Errorf("Partition %s already exist", partitionName)
 		return errors.New("Already exist")
 	}
-	disk, start, err := FindBestPart(diskName, size)
+	disk, start, err := findBestPart(diskMetaName, capacityMiB)
 	if err != nil {
-		klog.Errorf("FindBestPart Failed")
+		klog.Errorf("findBestPart Failed")
 		return err
 	}
-	return CreatePart(disk, start, partitionName, size)
+	return createPart(disk, start, partitionName, capacityMiB)
 }
 
-// CreatePart Todo
-func CreatePart(disk string, start int, partitionName string, size int) error {
+func createPart(disk string, start uint64, partitionName string, size uint64) error {
 	_, err := RunCommand(strings.Split(fmt.Sprintf(PartitionCreate, disk, partitionName, start, start+size), " "))
 	return err
 }
 
+
+// getAllPartsFree Todo
+func getAllPartsFree(diskName string) ([]partFree, error) {
+	diskList, err := getDiskList()
+	if err != nil {
+		klog.Errorf("GetDiskList failed %s", err)
+		return nil, err
+	}
+	var pList []partFree
+	for _, disk := range diskList {
+		tmpList, err := getPartsFree(disk.DiskName, diskName)
+		if err != nil {
+			klog.Infof("GetPart Error, %s", disk.DiskName)
+			continue
+		}
+		pList = append(pList, tmpList...)
+	}
+	return pList, nil
+}
+
+func findBestPart(diskName string, partSize uint64) (string, uint64, error) {
+	pList, err := getAllPartsFree(diskName)
+	if err != nil {
+		klog.Errorln("Device LocalPV: GetAllPartsFree error")
+		return "", 0, err
+	}
+
+	if len(pList) > 0 {
+		sort.Slice(pList, func(i, j int) bool {
+			// "<" Ascending order
+			return pList[i].SizeMiB < pList[j].SizeMiB
+		})
+		for _, tmp := range pList {
+			if tmp.SizeMiB > partSize {
+				return tmp.DiskName, tmp.StartMiB, nil
+			}
+		}
+	}
+	klog.Errorln("Device LocalPV: Free space for partition is not found")
+	return "", 0, err
+
+}
+
 // GetAllPartsUsed Todo
-func getAllPartsUsed(diskName string, partitionName string) ([]partUsed, error) {
-	diskList, err := GetDiskList()
+func getAllPartsUsed(diskMetaName string, partitionName string) ([]partUsed, error) {
+	diskList, err := getDiskList()
 	if err != nil {
 		klog.Errorf("GetDiskList failed %s", err)
 		return nil, err
 	}
 	var pList []partUsed
 	for _, disk := range diskList {
-		tmpList, err := GetPartitionList(disk.Name, diskName, false)
+		tmpList, err := GetPartitionList(disk.DiskName, diskMetaName, false)
 		if err != nil {
-			klog.Infof("GetPart Error, %s", disk.Name)
+			klog.Infof("GetPart Error, %s", disk)
 			continue
 		}
 		for _, tmp := range tmpList {
 			if tmp[len(tmp)-1] == partitionName {
 				partNum, _ := strconv.ParseInt(tmp[0], 10, 32)
-				pList = append(pList, partUsed{disk.Name, int(partNum)})
+				pList = append(pList, partUsed{disk.DiskName, uint32(partNum)})
 			}
 		}
 	}
@@ -104,58 +159,16 @@ func getAllPartsUsed(diskName string, partitionName string) ([]partUsed, error) 
 
 }
 
-// GetPartitionList Todo
-func GetPartitionList(disk string, diskName string, free bool) ([][]string, error) {
-	var command string
-	if free {
-		command = PartitionPrintFree
-	} else {
-		command = PartitionPrint
-	}
-	out, err := RunCommand(strings.Split(fmt.Sprintf(command, disk), " "))
-	if err != nil {
-		klog.Errorf("Device LocalPV: could not get parts error: %s %v\n", string(out), err)
-		fmt.Printf("Device LocalPV: could not get parts error: %s %v\n", string(out), err)
-		return nil, err
-	}
-	sli := strings.Split(string(out), "\n")
-	start := 0
-	var result [][]string
-	for _, value := range sli {
-		tmp := strings.Fields(value)
-		if len(tmp) == 0 {
-			continue
-		}
-		if tmp[0] == "Partition" && tmp[1] == "Table" && tmp[2] != "gpt" {
-			klog.Infof("Disk: %s Not an GPT Partitioned Disk", disk)
-			return nil, errors.New("Wrong Partition type")
-		}
-		if start == 0 {
-			if tmp[0] == "Number" {
-				start = 1
-			}
-			continue
-		}
-		if diskName != "" && tmp[0] == "1" && tmp[len(tmp)-1] != diskName {
-			klog.Errorf("Disk: DiskName not correct")
-			return nil, errors.New("Wrong DiskName")
-		}
-		result = append(result, tmp)
-	}
-	fmt.Println(result)
-	return result, nil
-}
 
 // DestroyVolume Todo
 func DestroyVolume(vol *apis.DeviceVolume) error {
-	diskName := vol.Spec.DevName
+	diskMetaName := vol.Spec.DevName
 	partitionName := vol.Name
-	pList, err := getAllPartsUsed(diskName, partitionName)
+	pList, err := getAllPartsUsed(diskMetaName, partitionName)
 	if err != nil {
 		klog.Errorf("GetAllPartsUsed failed %s", err)
 		return err
 	}
-	fmt.Println(pList)
 	if len(pList) > 1 {
 		klog.Errorf("More than one partition of same name %s\n", partitionName)
 		return errors.New("More than one partition of same name")
@@ -164,40 +177,37 @@ func DestroyVolume(vol *apis.DeviceVolume) error {
 		klog.Errorf("%s Partition not found\n", partitionName)
 		return errors.New("Partition not found")
 	}
-	return DeletePart(pList[0].disk, pList[0].partNum)
+	return deletePart(pList[0].DiskName, pList[0].PartNum)
 
 }
 
 // DeletePart Todo
-func DeletePart(disk string, partNum int) error {
+func deletePart(disk string, partNum uint32) error {
 	_, err := RunCommand(strings.Split(fmt.Sprintf(PartitionDelete, disk, partNum), " "))
 	return err
 }
 
 // GetVolumeDevPath Todo
 func GetVolumeDevPath(vol *apis.DeviceVolume) (string, error) {
-	//func GetPath(diskName string, partitionName string) (string, error) {
-	diskName := vol.Spec.DevName
+	diskMetaName := vol.Spec.DevName
 	partitionName := vol.Name
-	diskList, err := GetDiskList()
+	pList, err := getAllPartsUsed(diskMetaName, partitionName)
 	if err != nil {
-		klog.Errorf("GetDiskList failed %s", err)
+		klog.Errorf("GetAllPartsUsed failed %s", err)
 		return "", err
 	}
-	for _, disk := range diskList {
-		pList, err := GetPartitionList(disk.Name, diskName, true)
-		if err != nil {
-			klog.Infof("GetPart Error, %s", disk.Name)
-			continue
-		}
-		for _, tmp := range pList {
-			if tmp[len(tmp)-1] == partitionName {
-				return disk.Name + tmp[0], nil
-			}
-		}
+	if len(pList) > 1 {
+		klog.Errorf("More than one partition of same name %s\n", partitionName)
+		return "", errors.New("More than one partition of same name")
 	}
-	return "", errors.New("Partition not found")
+	if len(pList) == 0 {
+		klog.Errorf("%s Partition not found\n", partitionName)
+		return "", errors.New("Partition not found")
+	}
+	return fmt.Sprintf("%s%d", pList[0].DiskName, pList[0].PartNum), nil
+
 }
+
 
 // RunCommand Todo
 func RunCommand(cList []string) (string, error) {
@@ -210,9 +220,90 @@ func RunCommand(cList []string) (string, error) {
 	return string(out), nil
 }
 
+// GetPartitionList Todo
+func GetPartitionList(diskName string, diskMetaName string, free bool) ([][]string, error) {
+	var command string
+	if free {
+		command = PartitionPrintFree
+	} else {
+		command = PartitionPrint
+	}
+	out, err := RunCommand(strings.Split(fmt.Sprintf(command, diskName), " "))
+	if err != nil {
+		klog.Errorf("Device LocalPV: could not get parts error: %s %v\n", string(out), err)
+		return nil, err
+	}
+	sli := strings.Split(string(out), "\n")
+	start := false
+	var result [][]string
+	for _, value := range sli {
+		tmp := strings.Fields(value)
+		if len(tmp) == 0 {
+			continue
+		}
+		if tmp[0] == "Partition" && tmp[1] == "Table" && tmp[2] != "gpt" {
+			klog.Infof("Disk: %s Not an GPT Partitioned Disk", diskName)
+			return nil, errors.New("Wrong Partition type")
+		}
+		if !start {
+			if tmp[0] == "Number" {
+				start = true
+			}
+			continue
+		}
+		if diskMetaName != "" && tmp[0] == "1" && tmp[len(tmp)-1] != diskMetaName {
+			klog.Infof("Disk: DiskName not correct")
+			return nil, errors.New("Wrong DiskMetaName")
+		}
+		result = append(result, tmp)
+	}
+	return result, nil
+}
+
+func getPartsFree(diskName string, diskMetaName string) ([]partFree, error) {
+	var pList []partFree
+	tmpList, err := GetPartitionList(diskName, diskMetaName, true)
+	if err != nil {
+		klog.Infof("GetPart Error, %s %s", diskName, diskMetaName)
+		return nil, errors.New("GetPartitionList Error")
+	}
+	for _, tmp := range tmpList {
+		if tmp[3] == "Free" {
+			beginBytes, _ := strconv.ParseUint(string(tmp[0][:len(tmp[0])-1]), 10, 64)
+			endBytes, _ := strconv.ParseUint(string(tmp[1][:len(tmp[1])-1]), 10, 64)
+			beginMib := math.Ceil(float64(beginBytes) / 1024 / 1024)
+			endMib := math.Floor(float64(endBytes) / 1024 / 1024)
+			size := uint64(0)
+			if endMib > beginMib {
+				size = uint64(endMib - beginMib)
+			}
+			pList = append(pList, partFree{diskName,  uint64(beginMib),  uint64(endMib),  size})
+		}
+	}
+	return pList, nil
+}
+
+func GetFreeCapacity(diskName string) (uint64, error) {
+	pList, err := getPartsFree(diskName, "")
+	if err != nil {
+		klog.Errorln("Device LocalPV: GetAllPartsFree error")
+		return 0, err
+	}
+	if len(pList) > 0 {
+		sort.Slice(pList, func(i, j int) bool {
+			// ">" Descending order
+			return pList[i].SizeMiB > pList[j].SizeMiB
+		})
+		return pList[0].SizeMiB, nil
+	}
+	klog.Errorln("Device LocalPV: Free space for partition is not found")
+	return 0, err
+}
+
+
 // GetDiskList Todo
-func GetDiskList() ([]apis.Device, error) {
-	var result []apis.Device
+func getDiskList() ([]diskDetail, error) {
+	var result []diskDetail
 	out, err := RunCommand(strings.Split(fmt.Sprintf(PartitionDiskList), " "))
 	if err != nil {
 		klog.Errorf("Device LocalPV: could not list disk error: %s %s", string(out), err)
@@ -225,98 +316,79 @@ func GetDiskList() ([]apis.Device, error) {
 			continue
 		}
 		if tmp[5] == "disk" {
-			result = append(result, apis.Device{
-				Name: tmp[0],
-			})
+			tsize, _ := strconv.ParseUint(tmp[3], 10,64)
+			result = append(result, diskDetail{tmp[0],tsize})
 		}
 	}
 	return result, nil
 }
 
-//func GetPartNum(disk string, name string) (int, error){
-//	pList, err := GetPartitionList(disk, "",false)
-//	if err != nil {
-//		klog.Errorf("Device LocalPV: could not get parts error: %s", err)
-//		return 0, err
-//	}
-//	for _, line := range pList {
-//		if line[len(line)-1] == name {
-//			num, _ := strconv.Atoi(line[0])
-//			return num, nil
-//		}
-//	}
-//	return 0, nil
-//}
-
-// getAllPartsFree Todo
-func getAllPartsFree(diskName string) ([]partFree, error) {
-	diskList, err := GetDiskList()
+func getDiskIdentifier(disk string) (string, error) {
+	out, err := RunCommand(strings.Split(fmt.Sprintf(PartitionDiskId, disk), " "))
 	if err != nil {
-		klog.Errorf("GetDiskList failed %s", err)
-		return nil, err
+		klog.Errorf("Device LocalPV: could not list disk error: %s %s", string(out), err)
+		return "", err
 	}
-	var pList []partFree
-	for _, disk := range diskList {
-		tmpList, err := GetPartitionList(disk.Name, diskName, true)
-		if err != nil {
-			klog.Infof("GetPart Error, %s", disk.Name)
+	sli := strings.Split(string(out), "\n")
+	for _, value := range sli {
+		tmp := strings.Fields(value)
+		if len(tmp) == 0 {
 			continue
 		}
-		for _, tmp := range tmpList {
-			if tmp[3] == "Free" {
-				begin, _ := strconv.ParseFloat(string(tmp[0][:len(tmp[0])-3]), 32)
-				end, _ := strconv.ParseFloat(string(tmp[1][:len(tmp[1])-3]), 32)
-				size := int(math.Floor(end) - math.Ceil(begin))
-				fmt.Println(begin, end, size)
-				pList = append(pList, partFree{disk.Name, int(math.Ceil(begin)), int(math.Floor(end)), size})
+		if tmp[0] == "Disklabel"  && tmp[1] == "type:" && tmp [2] != "gpt" {
+			return "", errors.New("Not an GPT disk")
+		}
+		if tmp[0] == "Disk" && tmp[1] == "identifier:" {
+			return 	tmp[2], nil
+		}
+	}
+	return "", errors.New("Invalid Disk")
+}
+
+func getDiskMetaName(diskName string) (string, error) {
+	tmpList, err := GetPartitionList(diskName, "", false)
+	if err != nil {
+		klog.Infof("GetPart Error, %s", diskName)
+		return "", err
+	}
+	for _, tmp := range tmpList {
+		if tmp[0] == "1" {
+			// DiskMetaPartition will not contain Flags, Filesystem, hence the number of columns would be 5
+			// and the Name will not cont
+			if len(tmp) == 5 && regexp.MustCompile(`^[a-zA-Z0-9_]*$`).MatchString(tmp[len(tmp)-1]) {
+				return tmp[len(tmp)-1], nil
 			}
 		}
 	}
-	return pList, nil
+	return "", errors.New("Meta Partition not found")
 
 }
 
-// GetCapacity Todo
-func GetCapacity(diskName string) (int, error) {
-	pList, err := getAllPartsFree(diskName)
+// GetDiskDetails Todo
+func GetDiskDetails() ([]apis.Device, error) {
+	var result []apis.Device
+	diskList, err := getDiskList()
 	if err != nil {
-		klog.Errorln("Device LocalPV: GetAllPartsFree error")
-		return 0, err
+		klog.Errorf("Device LocalPV: could not list disk error: %+v", err)
+		return nil, err
 	}
-	fmt.Println(pList)
-	if len(pList) > 0 {
-		sort.Slice(pList, func(i, j int) bool {
-			// ">" Descending order
-			return pList[i].size > pList[j].size
-		})
-		return pList[0].size, nil
-	}
-	klog.Errorln("Device LocalPV: Free space for partition is not found")
-	return 0, err
-
-}
-
-// FindBestPart Todo
-func FindBestPart(diskName string, partSize int) (string, int, error) {
-	pList, err := getAllPartsFree(diskName)
-	if err != nil {
-		klog.Errorln("Device LocalPV: GetAllPartsFree error")
-		return "", 0, err
-	}
-	fmt.Println(pList)
-
-	if len(pList) > 0 {
-		sort.Slice(pList, func(i, j int) bool {
-			// "<" Ascending order
-			return pList[i].size < pList[j].size
-		})
-		for _, tmp := range pList {
-			if tmp.size > partSize {
-				return tmp.disk, tmp.start, nil
-			}
+	for _, diskIter := range diskList {
+		metaName, err := getDiskMetaName(diskIter.DiskName)
+		if err != nil {
+			continue
 		}
+		id, err := getDiskIdentifier(diskIter.DiskName)
+		if err != nil {
+			continue
+		}
+		free, err := GetFreeCapacity(diskIter.DiskName)
+		if err != nil {
+			continue
+		}
+		result = append(result, apis.Device{metaName, id,
+			*resource.NewQuantity(int64(diskIter.Size), resource.DecimalSI),
+			*resource.NewQuantity(int64(free*1024*1024), resource.DecimalSI)})
 	}
-	klog.Errorln("Device LocalPV: Free space for partition is not found")
-	return "", 0, err
 
+	return result, nil
 }
