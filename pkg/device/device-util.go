@@ -21,9 +21,9 @@ import (
 	"github.com/openebs/lib-csi/pkg/common/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/klog"
+	"regexp"
 	"math"
 	"os/exec"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -159,6 +159,7 @@ func getAllPartsUsed(diskMetaName string, partitionName string) ([]partUsed, err
 
 }
 
+
 // DestroyVolume Todo
 func DestroyVolume(vol *apis.DeviceVolume) error {
 	diskMetaName := vol.Spec.DevName
@@ -206,6 +207,7 @@ func GetVolumeDevPath(vol *apis.DeviceVolume) (string, error) {
 	return fmt.Sprintf("%s%d", pList[0].DiskName, pList[0].PartNum), nil
 
 }
+
 
 // RunCommand Todo
 func RunCommand(cList []string) (string, error) {
