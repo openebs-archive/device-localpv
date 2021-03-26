@@ -71,6 +71,8 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		SchemeGroupVersion,
 		&DeviceVolume{},
 		&DeviceVolumeList{},
+		&DeviceNode{},
+		&DeviceNodeList{},
 	)
 	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
 	return nil

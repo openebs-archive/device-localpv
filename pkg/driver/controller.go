@@ -515,6 +515,7 @@ func (cs *controller) GetCapacity(
 	params := req.GetParameters()
 	deviceParam := helpers.GetInsensitiveParameter(&params, "deviceName")
 
+	klog.Infof("############## %+v", params)
 	var availableCapacity int64
 	for _, nodeName := range nodeNames {
 		v, exists, err := deviceNodeCache.GetByKey(device.DeviceNamespace + "/" + nodeName)
@@ -530,7 +531,9 @@ func (cs *controller) GetCapacity(
 		// partition size that gets fit in given device.
 		// See https://github.com/kubernetes/enhancements/tree/master/keps/sig-storage/1472-storage-capacity-tracking#available-capacity-vs-maximum-volume-size &
 		// https://github.com/container-storage-interface/spec/issues/432 for more details
+		klog.Infof("############## %+v", deviceNode)
 		for _, device := range deviceNode.Devices {
+			klog.Infof("############## %+v %+v", device.Name, deviceParam)
 			if device.Name != deviceParam {
 				continue
 			}

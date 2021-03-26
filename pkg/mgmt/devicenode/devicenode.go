@@ -68,6 +68,7 @@ func (c *NodeController) syncNode(namespace string, name string) error {
 	if err != nil {
 		return err
 	}
+	klog.Infof("Devices List %+v", devices)
 
 	if node == nil { // if it doesn't exists, create device node object
 		if node, err = nodebuilder.NewBuilder().

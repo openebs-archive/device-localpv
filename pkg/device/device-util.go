@@ -159,7 +159,6 @@ func getAllPartsUsed(diskMetaName string, partitionName string) ([]partUsed, err
 
 }
 
-
 // DestroyVolume Todo
 func DestroyVolume(vol *apis.DeviceVolume) error {
 	diskMetaName := vol.Spec.DevName
@@ -207,7 +206,6 @@ func GetVolumeDevPath(vol *apis.DeviceVolume) (string, error) {
 	return fmt.Sprintf("%s%d", pList[0].DiskName, pList[0].PartNum), nil
 
 }
-
 
 // RunCommand Todo
 func RunCommand(cList []string) (string, error) {
@@ -354,9 +352,10 @@ func getDiskMetaName(diskName string) (string, error) {
 	for _, tmp := range tmpList {
 		if tmp[0] == "1" {
 			// DiskMetaPartition will not contain Flags, Filesystem, hence the number of columns would be 5
-			// and the Name will not cont
-			if len(tmp) == 5 && regexp.MustCompile(`^[a-zA-Z0-9_]*$`).MatchString(tmp[len(tmp)-1]) {
-				return tmp[len(tmp)-1], nil
+			// and the Name will not contain special characters
+			last := tmp[len(tmp)-1]
+			if len(tmp) == 5 && regexp.MustCompile(`^[a-zA-Z0-9_.-]*$`).MatchString(last) && last != "ext4" {
+				return last, nil
 			}
 		}
 	}
@@ -375,14 +374,17 @@ func GetDiskDetails() ([]apis.Device, error) {
 	for _, diskIter := range diskList {
 		metaName, err := getDiskMetaName(diskIter.DiskName)
 		if err != nil {
+			klog.Errorf("Device LocalPV: getDiskMetaName Failed %s", diskIter.DiskName)
 			continue
 		}
 		id, err := getDiskIdentifier(diskIter.DiskName)
 		if err != nil {
+			klog.Errorf("Device LocalPV: getDiskIdentifier Failed %s", diskIter.DiskName)
 			continue
 		}
 		free, err := GetFreeCapacity(diskIter.DiskName)
 		if err != nil {
+			klog.Errorf("Device LocalPV: GetFreeCapacity Failed %s", diskIter.DiskName)
 			continue
 		}
 		result = append(result, apis.Device{metaName, id,
@@ -390,5 +392,6 @@ func GetDiskDetails() ([]apis.Device, error) {
 			*resource.NewQuantity(int64(free*1024*1024), resource.DecimalSI)})
 	}
 
+	klog.Infof("%+v", result)
 	return result, nil
 }
