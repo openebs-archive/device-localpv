@@ -48,7 +48,7 @@ func NewVolumeParams(m map[string]string) (*VolumeParams, error) {
 	// parameter keys (not values!) are all lowercase, keys may safely be forced
 	// to the lower case.
 	m = helpers.GetCaseInsensitiveMap(&m)
-	params.DeviceName = m["deviceName"]
+	params.DeviceName = m["devname"]
 
 	// parse string params
 	stringParams := map[string]*string{

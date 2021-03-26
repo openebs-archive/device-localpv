@@ -21,9 +21,9 @@ import (
 	"github.com/openebs/lib-csi/pkg/common/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/klog"
-	"regexp"
 	"math"
 	"os/exec"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -61,7 +61,7 @@ type diskDetail struct {
 func CreateVolume(vol *apis.DeviceVolume) error {
 	//func CreatePartition(diskName string, partitionName string, size int) error {
 	diskMetaName := vol.Spec.DevName
-	partitionName := vol.Name
+	partitionName := vol.Name[4:]
 
 	capacityBytes, err := strconv.ParseInt(vol.Spec.Capacity, 10, 64)
 	if err != nil {
@@ -162,7 +162,7 @@ func getAllPartsUsed(diskMetaName string, partitionName string) ([]partUsed, err
 // DestroyVolume Todo
 func DestroyVolume(vol *apis.DeviceVolume) error {
 	diskMetaName := vol.Spec.DevName
-	partitionName := vol.Name
+	partitionName := vol.Name[4:]
 	pList, err := getAllPartsUsed(diskMetaName, partitionName)
 	if err != nil {
 		klog.Errorf("GetAllPartsUsed failed %s", err)
@@ -173,8 +173,8 @@ func DestroyVolume(vol *apis.DeviceVolume) error {
 		return errors.New("More than one partition of same name")
 	}
 	if len(pList) == 0 {
-		klog.Errorf("%s Partition not found\n", partitionName)
-		return errors.New("Partition not found")
+		klog.Infof("%s Partition not found, Skipping Deletion\n", partitionName)
+		return nil
 	}
 	return deletePart(pList[0].DiskName, pList[0].PartNum)
 
@@ -189,7 +189,7 @@ func deletePart(disk string, partNum uint32) error {
 // GetVolumeDevPath Todo
 func GetVolumeDevPath(vol *apis.DeviceVolume) (string, error) {
 	diskMetaName := vol.Spec.DevName
-	partitionName := vol.Name
+	partitionName := vol.Name[4:]
 	pList, err := getAllPartsUsed(diskMetaName, partitionName)
 	if err != nil {
 		klog.Errorf("GetAllPartsUsed failed %s", err)
@@ -203,7 +203,7 @@ func GetVolumeDevPath(vol *apis.DeviceVolume) (string, error) {
 		klog.Errorf("%s Partition not found\n", partitionName)
 		return "", errors.New("Partition not found")
 	}
-	return fmt.Sprintf("%s%d", pList[0].DiskName, pList[0].PartNum), nil
+	return fmt.Sprintf("/dev/%s%d", pList[0].DiskName, pList[0].PartNum), nil
 
 }
 
