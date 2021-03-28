@@ -39,6 +39,7 @@ const (
 	PartitionPrint     = "parted /dev/%s unit b print --script"
 	PartitionCreate    = "parted /dev/%s mkpart %s %dMiB %dMiB --script"
 	PartitionDelete    = "parted /dev/%s rm %d --script"
+	PartitionWipeFS    = "wipefs -a /dev/%s%d"
 )
 
 type partUsed struct {
@@ -176,13 +177,21 @@ func DestroyVolume(vol *apis.DeviceVolume) error {
 		klog.Infof("%s Partition not found, Skipping Deletion\n", partitionName)
 		return nil
 	}
-	return deletePart(pList[0].DiskName, pList[0].PartNum)
+	return wipefsAndDeletePart(pList[0].DiskName, pList[0].PartNum)
 
 }
 
 // DeletePart Todo
-func deletePart(disk string, partNum uint32) error {
-	_, err := RunCommand(strings.Split(fmt.Sprintf(PartitionDelete, disk, partNum), " "))
+func wipefsAndDeletePart(disk string, partNum uint32) error {
+	_, err := RunCommand(strings.Split(fmt.Sprintf(PartitionWipeFS, disk, partNum), " "))
+	if err != nil {
+		klog.Errorf("WipeFS failed %s", err)
+		return err
+	}
+	_, err = RunCommand(strings.Split(fmt.Sprintf(PartitionDelete, disk, partNum), " "))
+	if err != nil {
+		klog.Errorf("Delete Partition failed %s", err)
+	}
 	return err
 }
 
