@@ -67,7 +67,7 @@ func init() {
 
 	DeviceNamespace = os.Getenv(DeviceNamespaceKey)
 	if DeviceNamespace == "" && os.Getenv("OPENEBS_NODE_DRIVER") != "" {
-		klog.Fatalf("Device_NAMESPACE environment variable not set")
+		klog.Fatalf("DEVICE_DRIVER_NAMESPACE environment variable not set")
 	}
 	NodeID = os.Getenv("OPENEBS_NODE_ID")
 	if NodeID == "" && os.Getenv("OPENEBS_NODE_DRIVER") != "" {
