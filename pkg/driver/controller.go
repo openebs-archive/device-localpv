@@ -18,6 +18,7 @@ package driver
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -513,7 +514,7 @@ func (cs *controller) GetCapacity(
 
 	deviceNodeCache := cs.deviceNodeInformer.GetIndexer()
 	params := req.GetParameters()
-	deviceParam := helpers.GetInsensitiveParameter(&params, "deviceName")
+	deviceParam := helpers.GetInsensitiveParameter(&params, "devname")
 
 	klog.Infof("############## %+v", params)
 	var availableCapacity int64
@@ -534,7 +535,12 @@ func (cs *controller) GetCapacity(
 		klog.Infof("############## %+v", deviceNode)
 		for _, device := range deviceNode.Devices {
 			klog.Infof("############## %+v %+v", device.Name, deviceParam)
-			if device.Name != deviceParam {
+			devRegex, err := regexp.Compile(deviceParam)
+			if err != nil {
+				klog.Infof("Disk: Regex compile failure %s, %+v", deviceParam, err)
+				return nil, err
+			}
+			if !devRegex.MatchString(device.Name) {
 				continue
 			}
 			freeCapacity := device.Free.Value()

@@ -17,6 +17,8 @@ limitations under the License.
 package driver
 
 import (
+	"k8s.io/klog"
+	"regexp"
 	"strconv"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -53,7 +55,12 @@ func getVolumeWeightedMap(deviceName string) (map[string]int64, error) {
 	// create the map of the volume count
 	// for the given deviceName
 	for _, vol := range vollist.Items {
-		if vol.Spec.DevName == deviceName {
+		devRegex, err := regexp.Compile(vol.Spec.DevName)
+		if err != nil {
+			klog.Infof("Disk: Regex compile failure %s, %+v", vol.Spec.DevName, err)
+			return nil, err
+		}
+		if devRegex.MatchString(deviceName) {
 			nmap[vol.Spec.OwnerNodeID]++
 		}
 	}
@@ -80,7 +87,12 @@ func getCapacityWeightedMap(deviceName string) (map[string]int64, error) {
 	// create the map of the volume capacity
 	// for the given device name
 	for _, vol := range volList.Items {
-		if vol.Spec.DevName == deviceName {
+		devRegex, err := regexp.Compile(vol.Spec.DevName)
+		if err != nil {
+			klog.Infof("Disk: Regex compile failure %s, %+v", vol.Spec.DevName, err)
+			return nil, err
+		}
+		if devRegex.MatchString(deviceName) {
 			volSize, err := strconv.ParseInt(vol.Spec.Capacity, 10, 64)
 			if err == nil {
 				nmap[vol.Spec.OwnerNodeID] += volSize

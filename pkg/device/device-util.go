@@ -258,7 +258,12 @@ func GetPartitionList(diskName string, diskMetaName string, free bool) ([][]stri
 			}
 			continue
 		}
-		if diskMetaName != "" && tmp[0] == "1" && tmp[len(tmp)-1] != diskMetaName {
+		devRegex, err := regexp.Compile(diskMetaName)
+		if err != nil {
+			klog.Infof("Disk: Regex compile failure %s, %+v", diskMetaName, err)
+			return nil, err
+		}
+		if diskMetaName != "" && tmp[0] == "1" && !devRegex.MatchString(tmp[len(tmp)-1]) {
 			klog.Infof("Disk: DiskName not correct")
 			return nil, errors.New("Wrong DiskMetaName")
 		}
