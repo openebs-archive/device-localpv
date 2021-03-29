@@ -4,14 +4,9 @@ metadata:
   name: openebs-device-sc
 allowVolumeExpansion: true
 parameters:
-  deviceName: "test-device"
+  devname: "test-device"
 provisioner: device.csi.openebs.io
-#allowedTopologies:
-#- matchLabelExpressions:
-#  - key: kubernetes.io/hostname
-#    values:
-#      - node-1
-#      - node-2
+volumeBindingMode: WaitForFirstConsumer
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
