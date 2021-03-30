@@ -165,6 +165,21 @@ func (b *Builder) WithFinalizer(finalizer []string) *Builder {
 	return b
 }
 
+// WithDeviceName sets device name for creating volume
+func (b *Builder) WithDeviceName(deviceName string) *Builder {
+	if deviceName == "" {
+		b.errs = append(
+			b.errs,
+			errors.New(
+				"failed to build device volume object: missing device name",
+			),
+		)
+		return b
+	}
+	b.volume.Object.Spec.DevName = deviceName
+	return b
+}
+
 // Build returns DeviceVolume API object
 func (b *Builder) Build() (*apis.DeviceVolume, error) {
 	if len(b.errs) > 0 {

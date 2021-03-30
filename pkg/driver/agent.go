@@ -21,10 +21,6 @@ import (
 	"sync"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
-	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
-	"github.com/openebs/device-localpv/pkg/builder/volbuilder"
-	"github.com/openebs/device-localpv/pkg/device"
-	"github.com/openebs/device-localpv/pkg/mgmt/volume"
 	k8sapi "github.com/openebs/lib-csi/pkg/client/k8s"
 	"github.com/openebs/lib-csi/pkg/mount"
 	"golang.org/x/net/context"
@@ -34,6 +30,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
+
+	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
+	"github.com/openebs/device-localpv/pkg/builder/volbuilder"
+	"github.com/openebs/device-localpv/pkg/device"
+	"github.com/openebs/device-localpv/pkg/mgmt/devicenode"
+	"github.com/openebs/device-localpv/pkg/mgmt/volume"
 )
 
 // node is the server implementation
@@ -50,11 +52,19 @@ func NewNode(d *CSIDriver) csi.NodeServer {
 	// set up signals so we handle the first shutdown signal gracefully
 	stopCh := signals.SetupSignalHandler()
 
-	// start the zfsvolume watcher
+	// start the device node resource watcher
+	go func() {
+		err := devicenode.Start(&ControllerMutex, stopCh)
+		if err != nil {
+			klog.Fatalf("Failed to start Device node controller: %s", err.Error())
+		}
+	}()
+
+	// start the device volume  watcher
 	go func() {
 		err := volume.Start(&ControllerMutex, stopCh)
 		if err != nil {
-			klog.Fatalf("Failed to start ZFS volume management controller: %s", err.Error())
+			klog.Fatalf("Failed to start Device volume management controller: %s", err.Error())
 		}
 	}()
 
@@ -108,7 +118,23 @@ func (ns *node) NodePublishVolume(
 		return nil, err
 	}
 
-	return nil, status.Error(codes.Unimplemented, "")
+	vol, mountInfo, err := GetVolAndMountInfo(req)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	switch req.GetVolumeCapability().GetAccessType().(type) {
+	case *csi.VolumeCapability_Mount:
+		err = device.MountFilesystem(vol, mountInfo)
+	case *csi.VolumeCapability_Block:
+		err = device.MountBlock(vol, mountInfo)
+	}
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &csi.NodePublishVolumeResponse{}, nil
 }
 
 // NodeUnpublishVolume unpublishes (unmounts) the volume
@@ -122,13 +148,34 @@ func (ns *node) NodeUnpublishVolume(
 
 	var (
 		err error
+		vol *apis.DeviceVolume
 	)
 
 	if err = ns.validateNodeUnpublishReq(req); err != nil {
 		return nil, err
 	}
 
-	return nil, status.Error(codes.Unimplemented, "")
+	targetPath := req.GetTargetPath()
+	volumeID := req.GetVolumeId()
+
+	if vol, err = device.GetDeviceVolume(volumeID); err != nil {
+		return nil, status.Errorf(codes.Internal,
+			"not able to get the DeviceVolume %s err : %s",
+			volumeID, err.Error())
+	}
+
+	err = device.UmountVolume(vol, targetPath)
+
+	if err != nil {
+		return nil, status.Errorf(codes.Internal,
+			"unable to umount the volume %s err : %s",
+			volumeID, err.Error())
+	}
+	klog.Infof("hostpath: volume %s path: %s has been unmounted.",
+		volumeID, targetPath)
+
+	return &csi.NodeUnpublishVolumeResponse{}, nil
+
 }
 
 // NodeGetInfo returns node details

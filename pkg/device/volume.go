@@ -15,25 +15,31 @@
 package device
 
 import (
+	"context"
 	"os"
+	"time"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	k8serror "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/klog"
 
 	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
 	"github.com/openebs/device-localpv/pkg/builder/volbuilder"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/klog"
 )
 
 const (
 	// DeviceNamespaceKey is the environment variable to get openebs namespace
 	//
 	// This environment variable is set via kubernetes downward API
-	DeviceNamespaceKey string = "Device_NAMESPACE"
+	DeviceNamespaceKey string = "DEVICE_DRIVER_NAMESPACE"
 	// GoogleAnalyticsKey This environment variable is set via env
 	GoogleAnalyticsKey string = "OPENEBS_IO_ENABLE_ANALYTICS"
 	// DeviceFinalizer for the DeviceVolume CR
 	DeviceFinalizer string = "device.openebs.io/finalizer"
-	// VolGroupKey is key for Device group name
-	VolGroupKey string = "openebs.io/volgroup"
+	// DeviceNameKey is key for Device group name
+	DeviceNameKey string = "openebs.io/devicename"
 	// DeviceNodeKey will be used to insert Label in DeviceVolume CR
 	DeviceNodeKey string = "kubernetes.io/nodename"
 	// DeviceTopologyKey is supported topology key for the device driver
@@ -61,7 +67,7 @@ func init() {
 
 	DeviceNamespace = os.Getenv(DeviceNamespaceKey)
 	if DeviceNamespace == "" && os.Getenv("OPENEBS_NODE_DRIVER") != "" {
-		klog.Fatalf("Device_NAMESPACE environment variable not set")
+		klog.Fatalf("DEVICE_DRIVER_NAMESPACE environment variable not set")
 	}
 	NodeID = os.Getenv("OPENEBS_NODE_ID")
 	if NodeID == "" && os.Getenv("OPENEBS_NODE_DRIVER") != "" {
@@ -75,14 +81,14 @@ func init() {
 // watcher for volume is present in CSI agent
 func ProvisionVolume(
 	vol *apis.DeviceVolume,
-) error {
+) (*apis.DeviceVolume, error) {
 
-	_, err := volbuilder.NewKubeclient().WithNamespace(DeviceNamespace).Create(vol)
+	createdVolume, err := volbuilder.NewKubeclient().WithNamespace(DeviceNamespace).Create(vol)
 	if err == nil {
 		klog.Infof("provisioned volume %s", vol.Name)
 	}
 
-	return err
+	return createdVolume, err
 }
 
 // DeleteVolume deletes the corresponding Device Volume CR
@@ -146,4 +152,50 @@ func RemoveVolFinalizer(vol *apis.DeviceVolume) error {
 
 	_, err := volbuilder.NewKubeclient().WithNamespace(DeviceNamespace).Update(vol)
 	return err
+}
+
+// WaitForDeviceVolumeProcessed waits till the device volume becomes
+// ready or failed (i.e reaches to terminal state).
+func WaitForDeviceVolumeProcessed(ctx context.Context, volumeID string) (*apis.DeviceVolume, error) {
+	timer := time.NewTimer(0)
+	defer timer.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, status.FromContextError(ctx.Err()).Err()
+		case <-timer.C:
+		}
+		vol, err := GetDeviceVolume(volumeID)
+		if err != nil {
+			return nil, status.Errorf(codes.Aborted,
+				"device: wait failed, not able to get the volume %s %s", volumeID, err.Error())
+		}
+		if vol.Status.State == DeviceStatusReady ||
+			vol.Status.State == DeviceStatusFailed {
+			return vol, nil
+		}
+		timer.Reset(1 * time.Second)
+	}
+}
+
+// WaitForDeviceVolumeDestroy waits till the device volume gets deleted.
+func WaitForDeviceVolumeDestroy(ctx context.Context, volumeID string) error {
+	timer := time.NewTimer(0)
+	defer timer.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return status.FromContextError(ctx.Err()).Err()
+		case <-timer.C:
+		}
+		_, err := GetDeviceVolume(volumeID)
+		if err != nil {
+			if k8serror.IsNotFound(err) {
+				return nil
+			}
+			return status.Errorf(codes.Aborted,
+				"device: destroy wait failed, not able to get the volume %s %s", volumeID, err.Error())
+		}
+		timer.Reset(1 * time.Second)
+	}
 }

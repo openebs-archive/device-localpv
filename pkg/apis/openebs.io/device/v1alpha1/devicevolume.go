@@ -79,4 +79,26 @@ type VolStatus struct {
 	// and it is ready for the use.
 	// +kubebuilder:validation:Enum=Pending;Ready
 	State string `json:"state,omitempty"`
+
+	// Error denotes the error occurred during provisioning a volume.
+	// Error field should only be set when State becomes Failed.
+	Error *VolumeError `json:"error,omitempty"`
 }
+
+// VolumeError specifies the error occurred during volume provisioning.
+type VolumeError struct {
+	Code    VolumeErrorCode `json:"code,omitempty"`
+	Message string          `json:"message,omitempty"`
+}
+
+// VolumeErrorCode represents the error code to represent
+// specific class of errors.
+type VolumeErrorCode string
+
+const (
+	// Internal represents system internal error.
+	Internal VolumeErrorCode = "Internal"
+	// InsufficientCapacity represent device doesn't
+	// have enough capacity to fit the volume request.
+	InsufficientCapacity VolumeErrorCode = "InsufficientCapacity"
+)
