@@ -35,15 +35,6 @@ func fsVolCreationTest() {
 		By("Creating and deploying app pod", createDeployVerifyApp)
 		By("verifying DeviceVolume object", VerifyDeviceVolume)
 
-		// btrfs does not support online resize
-		if fstype != "btrfs" {
-			resizeAndVerifyPVC(true, "8Gi")
-		}
-
-		if fstype != "btrfs" {
-			resizeAndVerifyPVC(false, "10Gi")
-		}
-
 		By("Deleting the application deployment")
 		deleteAppDeployment(appName)
 

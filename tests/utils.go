@@ -49,28 +49,6 @@ func IsPVCBoundEventually(pvcName string) bool {
 		Should(gomega.BeTrue())
 }
 
-// IsPVCResizedEventually checks if the pvc is bound or not eventually
-func IsPVCResizedEventually(pvcName string, newCapacity string, shouldPass bool) bool {
-	newStorage, err := resource.ParseQuantity(newCapacity)
-	if err != nil {
-		return false
-	}
-	status := gomega.BeFalse()
-	if shouldPass {
-		status = gomega.BeTrue()
-	}
-
-	return gomega.Eventually(func() bool {
-		volume, err := PVCClient.
-			Get(pvcName, metav1.GetOptions{})
-		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-		pvcStorage := volume.Status.Capacity[corev1.ResourceName(corev1.ResourceStorage)]
-		return pvcStorage == newStorage
-	},
-		120, 5).
-		Should(status)
-}
-
 // IsPodRunningEventually return true if the pod comes to running state
 func IsPodRunningEventually(namespace, podName string) bool {
 	return gomega.Eventually(func() bool {
@@ -252,41 +230,6 @@ func createAndVerifyBlockPVC() {
 	)
 }
 
-func resizeAndVerifyPVC(shouldPass bool, size string) {
-	var (
-		err     error
-		pvcName = "devicepv-pvc"
-	)
-	ginkgo.By("updating the pvc with new size")
-	pvcObj, err = PVCClient.WithNamespace(OpenEBSNamespace).Get(pvcObj.Name, metav1.GetOptions{})
-	pvcObj, err = pvc.BuildFrom(pvcObj).
-		WithCapacity(size).Build()
-	gomega.Expect(err).To(
-		gomega.BeNil(),
-		"while building pvc {%s} in namespace {%s}",
-		pvcName,
-		OpenEBSNamespace,
-	)
-	pvcObj, err = PVCClient.WithNamespace(OpenEBSNamespace).Update(pvcObj)
-	gomega.Expect(err).To(
-		gomega.BeNil(),
-		"while updating pvc {%s} in namespace {%s}",
-		pvcName,
-		OpenEBSNamespace,
-	)
-
-	ginkgo.By("verifying pvc size to be updated")
-
-	IsPVCResizedEventually(pvcName, size, shouldPass)
-
-	pvcObj, err = PVCClient.WithNamespace(OpenEBSNamespace).Get(pvcObj.Name, metav1.GetOptions{})
-	gomega.Expect(err).To(
-		gomega.BeNil(),
-		"while retrieving pvc {%s} in namespace {%s}",
-		pvcName,
-		OpenEBSNamespace,
-	)
-}
 func createDeployVerifyApp() {
 	ginkgo.By("creating and deploying app pod")
 	createAndDeployAppPod(appName)
