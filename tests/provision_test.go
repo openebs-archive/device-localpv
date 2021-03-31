@@ -41,7 +41,6 @@ func fsVolCreationTest() {
 		}
 
 		if fstype != "btrfs" {
-			// if snapshot is there, resize should fail
 			resizeAndVerifyPVC(false, "10Gi")
 		}
 
