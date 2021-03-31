@@ -17,7 +17,7 @@
 set -e
 
 # setup a block device and meta partition on the disk
-truncate -s 10240G /tmp/disk.img
+truncate -s 1024G /tmp/disk.img
 disk=`sudo losetup -f /tmp/disk.img --show`
 sudo parted "$disk" mklabel gpt
 sudo parted "$disk" mkpart test-device 1MiB 10MiB
@@ -96,6 +96,9 @@ ginkgo -v
 
 if [ $? -ne 0 ]; then
 
+lsblk -b
+sudo fdisk -l
+sudo udevadm info ${disk}p1
 sudo parted -l
 
 echo "******************** Device Controller logs***************************** "
