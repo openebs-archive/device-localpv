@@ -183,7 +183,7 @@ func DestroyVolume(vol *apis.DeviceVolume) error {
 
 // DeletePart Todo
 func wipefsAndDeletePart(disk string, partNum uint32) error {
-	_, err := RunCommand(strings.Split(fmt.Sprintf(PartitionWipeFS, disk, partNum), " "))
+	_, err := RunCommand(strings.Split(fmt.Sprintf(getPartitionPath(disk, partNum), disk, partNum), " "))
 	if err != nil {
 		klog.Errorf("WipeFS failed %s", err)
 		return err
@@ -212,8 +212,8 @@ func GetVolumeDevPath(vol *apis.DeviceVolume) (string, error) {
 		klog.Errorf("%s Partition not found\n", partitionName)
 		return "", errors.New("Partition not found")
 	}
-	return fmt.Sprintf("/dev/%s%d", pList[0].DiskName, pList[0].PartNum), nil
 
+	return getPartitionPath(pList[0].DiskName, pList[0].PartNum), nil
 }
 
 // RunCommand Todo
@@ -409,4 +409,15 @@ func GetDiskDetails() ([]apis.Device, error) {
 
 	klog.Infof("%+v", result)
 	return result, nil
+}
+
+// getPartitionPath gets the partition path from disk name and partition number.
+func getPartitionPath(diskName string, partNum uint32) string {
+	r := regexp.MustCompile(".+[0-9]+$")
+	// if the disk name ends in a number, then partition will be of the format /dev/nvme0n1p1
+	if r.MatchString(diskName) {
+		return fmt.Sprintf("/dev/%sp%d", diskName, partNum)
+	} else {
+		return fmt.Sprintf("/dev/%s%d", diskName, partNum)
+	}
 }
