@@ -4,10 +4,11 @@ go 1.14
 
 require (
 	github.com/container-storage-interface/spec v1.2.0
+	github.com/ghodss/yaml v1.0.0
 	github.com/golang/protobuf v1.4.3
 	github.com/kubernetes-csi/csi-lib-utils v0.9.1
-	github.com/onsi/ginkgo v1.10.1 // indirect
-	github.com/onsi/gomega v1.7.0 // indirect
+	github.com/onsi/ginkgo v1.10.1
+	github.com/onsi/gomega v1.7.0
 	github.com/openebs/lib-csi v0.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.1.3
