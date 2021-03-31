@@ -327,7 +327,8 @@ func getDiskList() ([]diskDetail, error) {
 		if len(tmp) == 0 {
 			continue
 		}
-		if tmp[5] == "disk" {
+		// loop is added here for testing purposes
+		if tmp[5] == "disk" || tmp[5] == "loop" {
 			tsize, _ := strconv.ParseUint(tmp[3], 10, 64)
 			result = append(result, diskDetail{tmp[0], tsize})
 		}
