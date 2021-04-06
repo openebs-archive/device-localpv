@@ -39,7 +39,7 @@ const (
 	PartitionPrint     = "parted /dev/%s unit b print --script"
 	PartitionCreate    = "parted /dev/%s mkpart %s %dMiB %dMiB --script"
 	PartitionDelete    = "parted /dev/%s rm %d --script"
-	PartitionWipeFS    = "wipefs -a /dev/%s%d"
+	PartitionWipeFS    = "wipefs --force -a /dev/%s%d"
 )
 
 type partUsed struct {
@@ -85,12 +85,32 @@ func CreateVolume(vol *apis.DeviceVolume) error {
 		klog.Errorf("findBestPart Failed")
 		return err
 	}
-	return createPart(disk, start, partitionName, capacityMiB)
+	return wipefsAndCreatePart(disk, start, partitionName, capacityMiB, diskMetaName)
 }
 
-func createPart(disk string, start uint64, partitionName string, size uint64) error {
+// DeletePart Todo
+func wipefsAndCreatePart(disk string, start uint64, partitionName string, size uint64, diskMetaName string) error {
+	klog.Infof("Creating Partition %s %s", partitionName, diskMetaName)
 	_, err := RunCommand(strings.Split(fmt.Sprintf(PartitionCreate, disk, partitionName, start, start+size), " "))
+	if err != nil {
+		klog.Errorf("Create Partition failed %s", err)
+		return err
+	}
+
+	pList, err := getAllPartsUsed(diskMetaName, partitionName)
+	if err != nil {
+		klog.Errorf("GetAllPartsUsed failed %s", err)
+		return err
+	}
+
+	klog.Infof("Running WipeFS for Partition %s %d", pList[0].DiskName, pList[0].PartNum)
+	_, err = RunCommand(strings.Split(fmt.Sprintf(PartitionWipeFS, pList[0].DiskName, pList[0].PartNum), " "))
+	if err != nil {
+		klog.Errorf("WipeFS failed %s", err)
+		return err
+	}
 	return err
+
 }
 
 // getAllPartsFree Todo
