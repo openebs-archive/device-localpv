@@ -39,7 +39,7 @@ const (
 	PartitionPrint     = "parted /dev/%s unit b print --script"
 	PartitionCreate    = "parted /dev/%s mkpart %s %dMiB %dMiB --script"
 	PartitionDelete    = "parted /dev/%s rm %d --script"
-	PartitionWipeFS    = "wipefs --force -a /dev/%s%d"
+	PartitionWipeFS    = "wipefs --force -a %s"
 )
 
 type partUsed struct {
@@ -104,7 +104,7 @@ func wipefsAndCreatePart(disk string, start uint64, partitionName string, size u
 	}
 
 	klog.Infof("Running WipeFS for Partition %s %d", pList[0].DiskName, pList[0].PartNum)
-	_, err = RunCommand(strings.Split(fmt.Sprintf(PartitionWipeFS, pList[0].DiskName, pList[0].PartNum), " "))
+	_, err = RunCommand(strings.Split(fmt.Sprintf(PartitionWipeFS, getPartitionPath(pList[0].DiskName, pList[0].PartNum)), " "))
 	if err != nil {
 		klog.Errorf("WipeFS failed %s", err)
 		return err
@@ -203,7 +203,7 @@ func DestroyVolume(vol *apis.DeviceVolume) error {
 
 // DeletePart Todo
 func wipefsAndDeletePart(disk string, partNum uint32) error {
-	_, err := RunCommand(strings.Split(fmt.Sprintf(getPartitionPath(disk, partNum), disk, partNum), " "))
+	_, err := RunCommand(strings.Split(fmt.Sprintf(PartitionWipeFS, getPartitionPath(disk, partNum)), " "))
 	if err != nil {
 		klog.Errorf("WipeFS failed %s", err)
 		return err
