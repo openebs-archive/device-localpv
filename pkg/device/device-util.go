@@ -106,7 +106,10 @@ func wipefsAndCreatePart(disk string, start uint64, partitionName string, size u
 	err = wipeFsPartition(pList[0].DiskName, pList[0].PartNum)
 	if err != nil {
 		klog.Infof("Deleting partition %d on disk %s because wipefs failed", pList[0].PartNum, pList[0].DiskName)
-		return deletePartition(pList[0].DiskName, pList[0].PartNum)
+		_ = deletePartition(pList[0].DiskName, pList[0].PartNum)
+		// the error will be returned irrespective of the return value of delete partition,
+		// as create partition has failed.
+		return err
 	}
 	return nil
 }
