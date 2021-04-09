@@ -39,7 +39,7 @@ const (
 	PartitionPrint     = "parted /dev/%s unit b print --script"
 	PartitionCreate    = "parted /dev/%s mkpart %s %dMiB %dMiB --script"
 	PartitionDelete    = "parted /dev/%s rm %d --script"
-	PartitionWipeFS    = "wipefs -a /dev/%s%d"
+	PartitionWipeFS    = "wipefs --force -a %s"
 )
 
 type partUsed struct {
@@ -85,12 +85,36 @@ func CreateVolume(vol *apis.DeviceVolume) error {
 		klog.Errorf("findBestPart Failed")
 		return err
 	}
-	return createPart(disk, start, partitionName, capacityMiB)
+	return wipefsAndCreatePart(disk, start, partitionName, capacityMiB, diskMetaName)
 }
 
-func createPart(disk string, start uint64, partitionName string, size uint64) error {
+// DeletePart Todo
+func wipefsAndCreatePart(disk string, start uint64, partitionName string, size uint64, diskMetaName string) error {
+	klog.Infof("Creating Partition %s %s", partitionName, diskMetaName)
 	_, err := RunCommand(strings.Split(fmt.Sprintf(PartitionCreate, disk, partitionName, start, start+size), " "))
-	return err
+	if err != nil {
+		klog.Errorf("Create Partition failed %s", err)
+		return err
+	}
+
+	pList, err := getAllPartsUsed(diskMetaName, partitionName)
+	if err != nil {
+		klog.Errorf("GetAllPartsUsed failed %s", err)
+		return err
+	}
+
+	err = wipeFsPartition(pList[0].DiskName, pList[0].PartNum)
+	if err != nil {
+		klog.Infof("Deleting partition %d on disk %s because wipefs failed", pList[0].PartNum, pList[0].DiskName)
+		err1 := deletePartition(pList[0].DiskName, pList[0].PartNum)
+		if err1 != nil {
+			klog.Errorf("could not delete partition %d on disk %s, created during CreateVolume(). Error: %s", pList[0].PartNum, pList[0].DiskName, err1)
+		}
+		// the error will be returned irrespective of the return value of delete partition,
+		// as create partition has failed.
+		return err
+	}
+	return nil
 }
 
 // getAllPartsFree Todo
@@ -181,16 +205,29 @@ func DestroyVolume(vol *apis.DeviceVolume) error {
 
 }
 
-// DeletePart Todo
 func wipefsAndDeletePart(disk string, partNum uint32) error {
-	_, err := RunCommand(strings.Split(fmt.Sprintf(getPartitionPath(disk, partNum), disk, partNum), " "))
+	err := wipeFsPartition(disk, partNum)
 	if err != nil {
-		klog.Errorf("WipeFS failed %s", err)
 		return err
 	}
-	_, err = RunCommand(strings.Split(fmt.Sprintf(PartitionDelete, disk, partNum), " "))
+	return deletePartition(disk, partNum)
+}
+
+// deletes the given partition from the disk
+func deletePartition(disk string, partNum uint32) error {
+	_, err := RunCommand(strings.Split(fmt.Sprintf(PartitionDelete, disk, partNum), " "))
 	if err != nil {
-		klog.Errorf("Delete Partition failed %s", err)
+		klog.Errorf("Delete Partition failed for disk: %s, partition: %d . Error: %s", disk, partNum, err)
+	}
+	return err
+}
+
+// performs a force wipefs on the given partition
+func wipeFsPartition(disk string, partNum uint32) error {
+	klog.Infof("Running WipeFS for disk: %s, partition %d", disk, partNum)
+	_, err := RunCommand(strings.Split(fmt.Sprintf(PartitionWipeFS, getPartitionPath(disk, partNum)), " "))
+	if err != nil {
+		klog.Errorf("WipeFS failed for disk: %s, partition: %d . Error: %s", disk, partNum, err)
 	}
 	return err
 }
