@@ -77,8 +77,9 @@ func CreateVolume(vol *apis.DeviceVolume) error {
 		return err
 	}
 	if len(pList) > 0 {
-		klog.Errorf("Partition %s already exist", partitionName)
-		return errors.New("Already exist")
+		klog.Infof("Partition %s already exist, Skipping creation", partitionName)
+		// Making Volume creation Idempotent
+		return nil
 	}
 	disk, start, err := findBestPart(diskMetaName, capacityMiB)
 	if err != nil {
