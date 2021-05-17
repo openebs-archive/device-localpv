@@ -1,4 +1,11 @@
 # OpenEBS Local Device CSI Driver
+[![Build Status](https://github.com/openebs/device-localpv/actions/workflows/build.yml/badge.svg)](https://github.com/openebs/device-localpv/actions/workflows/build.yml)
+[![Slack](https://img.shields.io/badge/chat!!!-slack-ff1493.svg?style=flat-square)](https://kubernetes.slack.com/messages/openebs)
+[![Community Meetings](https://img.shields.io/badge/Community-Meetings-blue)](https://hackmd.io/yJb407JWRyiwLU-XDndOLA?view)
+[![Go Report](https://goreportcard.com/badge/github.com/openebs/device-localpv)](https://goreportcard.com/report/github.com/openebs/device-localpv)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4871/badge)](https://bestpractices.coreinfrastructure.org/projects/4871)
+
+<img width="300" align="right" alt="OpenEBS Logo" src="https://raw.githubusercontent.com/cncf/artwork/master/projects/openebs/stacked/color/openebs-stacked-color.png" xmlns="http://www.w3.org/1999/html">
 
 CSI Driver for using Local Block Devices 
 
