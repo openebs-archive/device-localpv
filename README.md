@@ -164,3 +164,23 @@ $ kubectl delete -f pvc.yaml
 persistentvolumeclaim "csi-devicepv" deleted
 ```
 
+Features
+---
+
+- [x] Access Modes
+   - [x] ReadWriteOnce
+   - ~~ReadOnlyMany~~
+   - ~~ReadWriteMany~~
+- [x] Volume modes
+   - [x] `Filesystem` mode
+   - [x] `Block` mode
+- [x] Supports fsTypes: `ext4`, `xfs`
+- [x] Volume metrics
+- [x] Topology
+- [ ] Snapshot
+- [ ] Clone
+- [ ] Volume Resize
+- [ ] Thin Provision
+- [ ] Backup/Restore
+- [ ] Ephemeral inline volume
+
