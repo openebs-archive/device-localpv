@@ -22,7 +22,7 @@ on:
       - 'changelogs/**'
       - '*.md'
     branches:
-      # on pull requests to master and release branches
+      # on pull requests to develop and release branches
       - develop
       - 'v*'
 
