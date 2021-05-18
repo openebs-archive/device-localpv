@@ -53,7 +53,7 @@ sudo parted /dev/loop9 mkpart test-device 1MiB 10MiB
 Deploy the Operator yaml
 
 ```
-kubectl apply -f https://raw.githubusercontent.com/openebs/device-localpv/master/deploy/device-operator.yaml
+kubectl apply -f https://raw.githubusercontent.com/openebs/device-localpv/develop/deploy/device-operator.yaml
 ```
 
 ### Deployment
