@@ -233,6 +233,11 @@ device-driver-image: device-driver
 	cd buildscripts/${CSI_DRIVER} && sudo docker build -t ${IMAGE_ORG}/${CSI_DRIVER}:${IMAGE_TAG} ${DBUILD_ARGS} . && sudo docker tag ${IMAGE_ORG}/${CSI_DRIVER}:${IMAGE_TAG} quay.io/${IMAGE_ORG}/${CSI_DRIVER}:${IMAGE_TAG}
 	@rm buildscripts/${CSI_DRIVER}/${CSI_DRIVER}
 
+.PHONY: ci
+ci:
+	@echo "--> Running ci test";
+	$(PWD)/ci/ci-test.sh
+
 # Push images
 deploy-images:
 	@DIMAGE="${IMAGE_ORG}/device-driver" ./buildscripts/push
