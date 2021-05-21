@@ -116,7 +116,7 @@ jobs:
 
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v1
         with:
           # add each registry to which the image needs to be pushed here
           images: |
