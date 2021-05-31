@@ -79,8 +79,9 @@ Check the doc on [storageclasses](docs/storageclasses.md) to know all the suppor
 
 ##### Device Availability
 
-If the device with meta partition is available on certain nodes only, then make use of topology to tell the list of nodes where we have the devices available.
-As shown in the below storage class, we can use allowedTopologies to describe device availability on nodes.
+If the device with meta partition is available on certain nodes only, then make use of topology to tell the list of 
+nodes where we have the devices available. As shown in the below storage class, we can use allowedTopologies to 
+describe device availability on nodes.
 
 ```
 apiVersion: storage.k8s.io/v1
@@ -99,8 +100,44 @@ allowedTopologies:
       - device-node2
 ```
 
-The above storage class tells that device with meta partition "test-device" is available on nodes device-node1 and device-node2 only. The Device CSI driver will create volumes on those nodes only.
+The above storage class tells that device with meta partition "test-device" is available on nodes device-node1 and 
+device-node2 only. The Device CSI driver will create volumes on those nodes only.
 
+##### Scheduler
+
+The OpenEBS Device driver has its own scheduler which will try to distribute the PV across the nodes so that one node 
+should not be loaded with all the volumes. Currently, the driver supports two scheduling algorithms: VolumeWeighted and 
+CapacityWeighted, in which it will try to find a device which has lesser number of volumes provisioned in it or 
+less capacity of volume provisioned out of a device respectively, from all the nodes where the devices are available. 
+To know about how to select scheduler via storage-class See [this](https://github.com/openebs/device-localpv/blob/master/docs/storageclasses.md#storageclass-with-k8s-scheduler).
+Once it is able to find the node, it will create a PV for that node and also create a DeviceVolume custom resource for 
+the volume with the node information. The watcher for this DeviceVolume CR will get all the information for this object 
+and creates a partition with the given size on the mentioned node.
+
+The scheduling algorithm currently only accounts for either the number of volumes or total capacity occupied from a 
+device and does not account for other factors like available cpu or memory while making scheduling decisions. So if you 
+want to use node selector/affinity rules on the application pod, or have cpu/memory constraints, kubernetes scheduler 
+should be used. To make use of kubernetes scheduler, you can set the `volumeBindingMode` as `WaitForFirstConsumer` in 
+the storage class. This will cause a delayed binding, i.e kubernetes scheduler will schedule the application pod first, 
+and then it will ask the Device driver to create the PV. The driver will then create the PV on the node where the pod 
+is scheduled.
+
+```
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: openebs-device-sc
+allowVolumeExpansion: true
+parameters:
+  devname: "test-device"
+provisioner: device.csi.openebs.io
+volumeBindingMode: WaitForFirstConsumer
+```
+
+Please note that once a PV is created for a node, application using that PV will always get scheduled to that particular
+node only, as PV will be sticky to that node. The scheduling algorithm by Device driver or kubernetes will come into 
+picture only during the deployment time. Once the PV is created, the application can not move anywhere as the data is 
+there on the node where the PV is.
 
 #### 2. Create the PVC
 
