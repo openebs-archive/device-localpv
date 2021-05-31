@@ -1,5 +1,30 @@
 ## Parameters
 
+### devname (*must* parameter)
+
+devname specifies the name of the device where the volume has been created. The *devname* is the must argument. It is 
+the name of the meta partition that is created on the disk.
+
+```console
+user@host:~$ parted /dev/sdd print
+Model: VMware Virtual disk (scsi)
+Disk /dev/sdd: 17.2GB
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+Disk Flags: 
+
+Number  Start   End     Size    File system  Name         Flags
+ 1      1049kB  10.5MB  9437kB               test-device
+```
+
+The name of first partition is the devname.
+
+```
+devname: "test-device"
+```
+
+
+
 ### StorageClass With k8s Scheduler
 
 The Device-LocalPV Driver has two types of its own scheduling logic, VolumeWeighted and CapacityWeighted. To choose any 
