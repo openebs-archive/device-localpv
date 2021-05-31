@@ -49,7 +49,7 @@ WaitForFirstConsumer in the storage class:
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
- name: openebs-zfspv
+ name: openebs-device-sc
 allowVolumeExpansion: true
 parameters:
   devname: "test-device"
