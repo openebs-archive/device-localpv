@@ -74,7 +74,7 @@ jobs:
         run: make bootstrap
 
       - name: Running tests
-        run: ./ci/ci-test.sh
+        run: make ci
 
   csi-driver:
     runs-on: ubuntu-latest
