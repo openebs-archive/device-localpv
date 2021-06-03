@@ -301,7 +301,7 @@ func (cs *controller) CreateVolume(
 	}
 
 	topology := map[string]string{device.DeviceTopologyKey: vol.Spec.OwnerNodeID}
-	cntx := map[string]string{device.DeviceNameKey: params.DeviceName}
+	cntx := map[string]string{device.DeviceNameKey: params.DeviceName, device.OpenEBSCasTypeKey: device.LocalDeviceCasTypeName}
 
 	return csipayload.NewCreateVolumeResponseBuilder().
 		WithName(volName).

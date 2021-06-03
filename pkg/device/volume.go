@@ -50,6 +50,10 @@ const (
 	DeviceStatusFailed string = "Failed"
 	// DeviceStatusReady shows object has been processed
 	DeviceStatusReady string = "Ready"
+	// OpenEBSCasTypeKey for the cas-type label
+	OpenEBSCasTypeKey string = "openebs.io/cas-type"
+	// LocalDeviceCasTypeName for the name of the cas-type
+	LocalDeviceCasTypeName string = "localpv-device"
 )
 
 var (
