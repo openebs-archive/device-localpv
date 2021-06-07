@@ -18,15 +18,16 @@ limitations under the License.
 
 import (
 	"fmt"
-	"github.com/openebs/lib-csi/pkg/common/errors"
-	"k8s.io/apimachinery/pkg/api/resource"
-	"k8s.io/klog"
 	"math"
 	"os/exec"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/openebs/lib-csi/pkg/common/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/klog"
 
 	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
 )
@@ -455,7 +456,6 @@ func getPartitionPath(diskName string, partNum uint32) string {
 	// if the disk name ends in a number, then partition will be of the format /dev/nvme0n1p1
 	if r.MatchString(diskName) {
 		return fmt.Sprintf("/dev/%sp%d", diskName, partNum)
-	} else {
-		return fmt.Sprintf("/dev/%s%d", diskName, partNum)
 	}
+	return fmt.Sprintf("/dev/%s%d", diskName, partNum)
 }

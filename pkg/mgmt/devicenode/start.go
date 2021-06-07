@@ -17,6 +17,7 @@
 package devicenode
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -60,7 +61,7 @@ func Start(controllerMtx *sync.RWMutex, stopCh <-chan struct{}) error {
 			options.FieldSelector = fields.OneTermEqualSelector("metadata.name", device.NodeID).String()
 		}))
 
-	k8sNode, err := kubeClient.CoreV1().Nodes().Get(device.NodeID, metav1.GetOptions{})
+	k8sNode, err := kubeClient.CoreV1().Nodes().Get(context.TODO(), device.NodeID, metav1.GetOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "fetch k8s node %s", device.NodeID)
 	}

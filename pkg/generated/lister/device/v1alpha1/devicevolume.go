@@ -26,8 +26,10 @@ import (
 )
 
 // DeviceVolumeLister helps list DeviceVolumes.
+// All objects returned here must be treated as read-only.
 type DeviceVolumeLister interface {
 	// List lists all DeviceVolumes in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*v1alpha1.DeviceVolume, err error)
 	// DeviceVolumes returns an object that can list and get DeviceVolumes.
 	DeviceVolumes(namespace string) DeviceVolumeNamespaceLister
@@ -58,10 +60,13 @@ func (s *deviceVolumeLister) DeviceVolumes(namespace string) DeviceVolumeNamespa
 }
 
 // DeviceVolumeNamespaceLister helps list and get DeviceVolumes.
+// All objects returned here must be treated as read-only.
 type DeviceVolumeNamespaceLister interface {
 	// List lists all DeviceVolumes in the indexer for a given namespace.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*v1alpha1.DeviceVolume, err error)
 	// Get retrieves the DeviceVolume from the indexer for a given namespace and name.
+	// Objects returned here must be treated as read-only.
 	Get(name string) (*v1alpha1.DeviceVolume, error)
 	DeviceVolumeNamespaceListerExpansion
 }

@@ -19,6 +19,8 @@ limitations under the License.
 package fake
 
 import (
+	"context"
+
 	v1alpha1 "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
@@ -39,7 +41,7 @@ var devicevolumesResource = schema.GroupVersionResource{Group: "local.openebs.io
 var devicevolumesKind = schema.GroupVersionKind{Group: "local.openebs.io", Version: "v1alpha1", Kind: "DeviceVolume"}
 
 // Get takes name of the deviceVolume, and returns the corresponding deviceVolume object, and an error if there is any.
-func (c *FakeDeviceVolumes) Get(name string, options v1.GetOptions) (result *v1alpha1.DeviceVolume, err error) {
+func (c *FakeDeviceVolumes) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.DeviceVolume, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewGetAction(devicevolumesResource, c.ns, name), &v1alpha1.DeviceVolume{})
 
@@ -50,7 +52,7 @@ func (c *FakeDeviceVolumes) Get(name string, options v1.GetOptions) (result *v1a
 }
 
 // List takes label and field selectors, and returns the list of DeviceVolumes that match those selectors.
-func (c *FakeDeviceVolumes) List(opts v1.ListOptions) (result *v1alpha1.DeviceVolumeList, err error) {
+func (c *FakeDeviceVolumes) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.DeviceVolumeList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewListAction(devicevolumesResource, devicevolumesKind, c.ns, opts), &v1alpha1.DeviceVolumeList{})
 
@@ -72,14 +74,14 @@ func (c *FakeDeviceVolumes) List(opts v1.ListOptions) (result *v1alpha1.DeviceVo
 }
 
 // Watch returns a watch.Interface that watches the requested deviceVolumes.
-func (c *FakeDeviceVolumes) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeDeviceVolumes) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(devicevolumesResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a deviceVolume and creates it.  Returns the server's representation of the deviceVolume, and an error, if there is any.
-func (c *FakeDeviceVolumes) Create(deviceVolume *v1alpha1.DeviceVolume) (result *v1alpha1.DeviceVolume, err error) {
+func (c *FakeDeviceVolumes) Create(ctx context.Context, deviceVolume *v1alpha1.DeviceVolume, opts v1.CreateOptions) (result *v1alpha1.DeviceVolume, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewCreateAction(devicevolumesResource, c.ns, deviceVolume), &v1alpha1.DeviceVolume{})
 
@@ -90,7 +92,7 @@ func (c *FakeDeviceVolumes) Create(deviceVolume *v1alpha1.DeviceVolume) (result 
 }
 
 // Update takes the representation of a deviceVolume and updates it. Returns the server's representation of the deviceVolume, and an error, if there is any.
-func (c *FakeDeviceVolumes) Update(deviceVolume *v1alpha1.DeviceVolume) (result *v1alpha1.DeviceVolume, err error) {
+func (c *FakeDeviceVolumes) Update(ctx context.Context, deviceVolume *v1alpha1.DeviceVolume, opts v1.UpdateOptions) (result *v1alpha1.DeviceVolume, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateAction(devicevolumesResource, c.ns, deviceVolume), &v1alpha1.DeviceVolume{})
 
@@ -102,7 +104,7 @@ func (c *FakeDeviceVolumes) Update(deviceVolume *v1alpha1.DeviceVolume) (result 
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeDeviceVolumes) UpdateStatus(deviceVolume *v1alpha1.DeviceVolume) (*v1alpha1.DeviceVolume, error) {
+func (c *FakeDeviceVolumes) UpdateStatus(ctx context.Context, deviceVolume *v1alpha1.DeviceVolume, opts v1.UpdateOptions) (*v1alpha1.DeviceVolume, error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateSubresourceAction(devicevolumesResource, "status", c.ns, deviceVolume), &v1alpha1.DeviceVolume{})
 
@@ -113,7 +115,7 @@ func (c *FakeDeviceVolumes) UpdateStatus(deviceVolume *v1alpha1.DeviceVolume) (*
 }
 
 // Delete takes name of the deviceVolume and deletes it. Returns an error if one occurs.
-func (c *FakeDeviceVolumes) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakeDeviceVolumes) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewDeleteAction(devicevolumesResource, c.ns, name), &v1alpha1.DeviceVolume{})
 
@@ -121,15 +123,15 @@ func (c *FakeDeviceVolumes) Delete(name string, options *v1.DeleteOptions) error
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeDeviceVolumes) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(devicevolumesResource, c.ns, listOptions)
+func (c *FakeDeviceVolumes) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+	action := testing.NewDeleteCollectionAction(devicevolumesResource, c.ns, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.DeviceVolumeList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched deviceVolume.
-func (c *FakeDeviceVolumes) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.DeviceVolume, err error) {
+func (c *FakeDeviceVolumes) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.DeviceVolume, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(devicevolumesResource, c.ns, name, pt, data, subresources...), &v1alpha1.DeviceVolume{})
 
