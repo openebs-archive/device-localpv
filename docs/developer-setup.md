@@ -136,7 +136,7 @@ Happy Hacking!
 * Test your changes
   * setup the devices on the nodes, check Setup in [readme](../README.md).
   * Integration tests are written in ginkgo and run against a minikube cluster. Minikube cluster should be running so as to execute the tests. To install minikube follow the doc [here](https://kubernetes.io/docs/tasks/tools/install-minikube/). 
-  * `sudo -E env "PATH=$PATH" make ci` execute the integration tests
+  * `make ci` execute the integration tests
 
 ### Keep your branch in sync
 
