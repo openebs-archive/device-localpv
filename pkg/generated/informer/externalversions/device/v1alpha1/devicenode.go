@@ -19,6 +19,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"context"
 	time "time"
 
 	devicev1alpha1 "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
@@ -61,13 +62,13 @@ func NewFilteredDeviceNodeInformer(client internalclientset.Interface, namespace
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.LocalV1alpha1().DeviceNodes(namespace).List(options)
+				return client.LocalV1alpha1().DeviceNodes(namespace).List(context.TODO(), options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.LocalV1alpha1().DeviceNodes(namespace).Watch(options)
+				return client.LocalV1alpha1().DeviceNodes(namespace).Watch(context.TODO(), options)
 			},
 		},
 		&devicev1alpha1.DeviceNode{},

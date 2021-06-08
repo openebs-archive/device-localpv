@@ -19,6 +19,8 @@ limitations under the License.
 package fake
 
 import (
+	"context"
+
 	v1alpha1 "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
@@ -39,7 +41,7 @@ var devicenodesResource = schema.GroupVersionResource{Group: "local.openebs.io",
 var devicenodesKind = schema.GroupVersionKind{Group: "local.openebs.io", Version: "v1alpha1", Kind: "DeviceNode"}
 
 // Get takes name of the deviceNode, and returns the corresponding deviceNode object, and an error if there is any.
-func (c *FakeDeviceNodes) Get(name string, options v1.GetOptions) (result *v1alpha1.DeviceNode, err error) {
+func (c *FakeDeviceNodes) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.DeviceNode, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewGetAction(devicenodesResource, c.ns, name), &v1alpha1.DeviceNode{})
 
@@ -50,7 +52,7 @@ func (c *FakeDeviceNodes) Get(name string, options v1.GetOptions) (result *v1alp
 }
 
 // List takes label and field selectors, and returns the list of DeviceNodes that match those selectors.
-func (c *FakeDeviceNodes) List(opts v1.ListOptions) (result *v1alpha1.DeviceNodeList, err error) {
+func (c *FakeDeviceNodes) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.DeviceNodeList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewListAction(devicenodesResource, devicenodesKind, c.ns, opts), &v1alpha1.DeviceNodeList{})
 
@@ -72,14 +74,14 @@ func (c *FakeDeviceNodes) List(opts v1.ListOptions) (result *v1alpha1.DeviceNode
 }
 
 // Watch returns a watch.Interface that watches the requested deviceNodes.
-func (c *FakeDeviceNodes) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeDeviceNodes) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(devicenodesResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a deviceNode and creates it.  Returns the server's representation of the deviceNode, and an error, if there is any.
-func (c *FakeDeviceNodes) Create(deviceNode *v1alpha1.DeviceNode) (result *v1alpha1.DeviceNode, err error) {
+func (c *FakeDeviceNodes) Create(ctx context.Context, deviceNode *v1alpha1.DeviceNode, opts v1.CreateOptions) (result *v1alpha1.DeviceNode, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewCreateAction(devicenodesResource, c.ns, deviceNode), &v1alpha1.DeviceNode{})
 
@@ -90,7 +92,7 @@ func (c *FakeDeviceNodes) Create(deviceNode *v1alpha1.DeviceNode) (result *v1alp
 }
 
 // Update takes the representation of a deviceNode and updates it. Returns the server's representation of the deviceNode, and an error, if there is any.
-func (c *FakeDeviceNodes) Update(deviceNode *v1alpha1.DeviceNode) (result *v1alpha1.DeviceNode, err error) {
+func (c *FakeDeviceNodes) Update(ctx context.Context, deviceNode *v1alpha1.DeviceNode, opts v1.UpdateOptions) (result *v1alpha1.DeviceNode, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateAction(devicenodesResource, c.ns, deviceNode), &v1alpha1.DeviceNode{})
 
@@ -101,7 +103,7 @@ func (c *FakeDeviceNodes) Update(deviceNode *v1alpha1.DeviceNode) (result *v1alp
 }
 
 // Delete takes name of the deviceNode and deletes it. Returns an error if one occurs.
-func (c *FakeDeviceNodes) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakeDeviceNodes) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewDeleteAction(devicenodesResource, c.ns, name), &v1alpha1.DeviceNode{})
 
@@ -109,15 +111,15 @@ func (c *FakeDeviceNodes) Delete(name string, options *v1.DeleteOptions) error {
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeDeviceNodes) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(devicenodesResource, c.ns, listOptions)
+func (c *FakeDeviceNodes) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+	action := testing.NewDeleteCollectionAction(devicenodesResource, c.ns, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.DeviceNodeList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched deviceNode.
-func (c *FakeDeviceNodes) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.DeviceNode, err error) {
+func (c *FakeDeviceNodes) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.DeviceNode, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(devicenodesResource, c.ns, name, pt, data, subresources...), &v1alpha1.DeviceNode{})
 

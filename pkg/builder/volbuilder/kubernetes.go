@@ -15,6 +15,7 @@
 package volbuilder
 
 import (
+	"context"
 	"encoding/json"
 
 	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
@@ -142,7 +143,7 @@ func defaultGet(
 ) (*apis.DeviceVolume, error) {
 	return cli.LocalV1alpha1().
 		DeviceVolumes(namespace).
-		Get(name, opts)
+		Get(context.TODO(), name, opts)
 }
 
 // defaultList is the default implementation to list
@@ -154,7 +155,7 @@ func defaultList(
 ) (*apis.DeviceVolumeList, error) {
 	return cli.LocalV1alpha1().
 		DeviceVolumes(namespace).
-		List(opts)
+		List(context.TODO(), opts)
 }
 
 // defaultCreate is the default implementation to delete
@@ -168,7 +169,7 @@ func defaultDel(
 	opts.PropagationPolicy = &deletePropagation
 	err := cli.LocalV1alpha1().
 		DeviceVolumes(namespace).
-		Delete(name, opts)
+		Delete(context.TODO(), name, *opts)
 	return err
 }
 
@@ -181,7 +182,7 @@ func defaultCreate(
 ) (*apis.DeviceVolume, error) {
 	return cli.LocalV1alpha1().
 		DeviceVolumes(namespace).
-		Create(vol)
+		Create(context.TODO(), vol, metav1.CreateOptions{})
 }
 
 // defaultUpdate is the default implementation to update
@@ -193,7 +194,7 @@ func defaultUpdate(
 ) (*apis.DeviceVolume, error) {
 	return cli.LocalV1alpha1().
 		DeviceVolumes(namespace).
-		Update(vol)
+		Update(context.TODO(), vol, metav1.UpdateOptions{})
 }
 
 // withDefaults sets the default options
