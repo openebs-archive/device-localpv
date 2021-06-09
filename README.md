@@ -41,6 +41,14 @@ truncate -s 1024G /tmp/disk.img
 sudo losetup -f /tmp/disk.img --show
 ```
 
+###### MetaPartition
+A meta partition is a small (~10MiB) partition that needs to be created on the disk, so as store the disk identification
+information. In device localpv, the partition name of the meta partition is used to identify the disk. A partition
+should follow the below criteria, so that openebs identifies it as a meta partition and use it for disk identification
+1. The partition number should be 1 (`ID_PART_ENTRY_NUMBER=1`)
+2. The partition should not be formatted with any filesystem
+3. The partition should not have any flags set on it
+
 Create the meta partition on the loop device which will be used for provisioning volumes
 
 ```
@@ -79,7 +87,7 @@ Check the doc on [storageclasses](docs/storageclasses.md) to know all the suppor
 
 ##### Device Availability
 
-If the device with meta partition is available on certain nodes only, then make use of topology to tell the list of 
+If the device with [meta partition](#metapartition) is available on certain nodes only, then make use of topology to tell the list of 
 nodes where we have the devices available. As shown in the below storage class, we can use allowedTopologies to 
 describe device availability on nodes.
 
