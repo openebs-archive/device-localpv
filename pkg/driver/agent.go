@@ -17,12 +17,18 @@ limitations under the License.
 package driver
 
 import (
+	"net/http"
 	"strings"
 	"sync"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
+	"github.com/openebs/device-localpv/pkg/collector"
+	"github.com/openebs/device-localpv/pkg/config"
 	k8sapi "github.com/openebs/lib-csi/pkg/client/k8s"
 	"github.com/openebs/lib-csi/pkg/mount"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/net/context"
 	"golang.org/x/sys/unix"
 	"google.golang.org/grpc/codes"
@@ -68,9 +74,53 @@ func NewNode(d *CSIDriver) csi.NodeServer {
 		}
 	}()
 
+	if d.config.ListenAddress != "" {
+		exposeMetrics(d.config, stopCh)
+	}
+
 	return &node{
 		driver: d,
 	}
+}
+
+type promErrorLog struct{}
+
+func (p *promErrorLog) Println(v ...interface{}) {
+	klog.Errorln(v...)
+}
+
+func exposeMetrics(c *config.Config, stopCh <-chan struct{}) {
+	registry := prometheus.NewRegistry()
+	if err := registry.Register(collector.NewDeviceCollector(stopCh)); err != nil {
+		klog.Fatalf("failed to register device metrics collector: %v", err)
+	}
+	if !c.DisableExporterMetrics {
+		if err := registry.Register(collectors.NewProcessCollector(
+			collectors.ProcessCollectorOpts{})); err != nil {
+			klog.Fatalf("failed to register process metrics collector: %v", err)
+		}
+		if err := registry.Register(collectors.NewGoCollector()); err != nil {
+			klog.Fatalf("failed to register go runtime metrics collector: %v", err)
+		}
+	}
+
+	http.Handle(c.MetricsPath, promhttp.InstrumentMetricHandler(registry,
+		promhttp.HandlerFor(registry, promhttp.HandlerOpts{ErrorLog: &promErrorLog{}})))
+	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		_, _ = w.Write([]byte(`<html>
+                               <head><title>Device Exporter</title></head>
+                               <body>
+                               <h1>Device Exporter</h1>
+                               <p><a href="` + c.MetricsPath + `">Metrics</a></p>
+                               </body>
+                               </html>`))
+	})
+
+	go func() {
+		if err := http.ListenAndServe(c.ListenAddress, nil); err != nil {
+			klog.Fatalf("failed to start prometheus server with config %+v: %v", c, err)
+		}
+	}()
 }
 
 // GetVolAndMountInfo get volume and mount info from node csi volume request

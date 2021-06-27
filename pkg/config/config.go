@@ -42,6 +42,18 @@ type Config struct {
 	// in case of topologies and publishing or
 	// unpublishing volumes on nodes
 	NodeID string
+
+	// ListenAddress denotes the tcp address serving prometheus metrics. (example: ":9080").
+	// Default is empty string, which means metrics are disabled.
+	ListenAddress string
+
+	// MetricsPath denotes the http path where prometheus metrics will be exposed.
+	// Default is /metrics
+	MetricsPath string
+
+	// Excludes additional process or go runtime related metrics (i.e process_*, go_*).
+	// Default is true
+	DisableExporterMetrics bool
 }
 
 // Default returns a new instance of config
