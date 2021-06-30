@@ -1,0 +1,31 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: devicepv-custom-topology-wait
+allowVolumeExpansion: true
+parameters:
+  fsType: "ext4"
+  devname: "{{ device_name }}"
+provisioner: device.csi.openebs.io
+volumeBindingMode: WaitForFirstConsumer
+allowedTopologies:
+- matchLabelExpressions:
+  - key: {{ lkey }} 
+    values:
+      - {{ lvalue }}
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: devicepv-custom-topology-immediate
+allowVolumeExpansion: true
+parameters:
+  fsType: "ext4"
+  devname: "{{ device_name }}"
+provisioner: device.csi.openebs.io
+allowedTopologies:
+- matchLabelExpressions:
+  - key: {{ lkey }} 
+    values:
+      - {{ lvalue }}

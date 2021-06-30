@@ -1,0 +1,3 @@
+test_name: device-controller-high-availability
+
+device_operator_ns: "{{ lookup('env','DEVICE_OPERATOR_NAMESPACE') }}"
