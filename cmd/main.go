@@ -74,6 +74,18 @@ func main() {
 		&config.PluginType, "plugin", "csi-plugin", "Type of this driver i.e. controller or node",
 	)
 
+	cmd.PersistentFlags().StringVar(
+		&config.ListenAddress, "listen-address", "", "TCP address serving prometheus metrics. (e.g: `:9080`). Default is empty string, which means metrics are disabled.",
+	)
+
+	cmd.PersistentFlags().StringVar(
+		&config.MetricsPath, "metrics-path", "/metrics", "HTTP path where prometheus metrics will be exposed. Default is `/metrics`.",
+	)
+
+	cmd.PersistentFlags().BoolVar(
+		&config.DisableExporterMetrics, "disable-exporter-metrics", true, "Excludes additional process or go runtime related metrics (i.e process_*, go_*). Default is true.",
+	)
+
 	err := cmd.Execute()
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "%s", err.Error())

@@ -43,10 +43,26 @@ const (
 	PartitionWipeFS    = "wipefs --force -a %s"
 )
 
-type partUsed struct {
+// PartUsed represents disk partition created by device plugin.
+type PartUsed struct {
 	DiskName string
 	PartNum  uint32
+
+	// Name denotes name of the partition.
+	Name string
+
+	// DevicePath denotes path of partition device file.
+	DevicePath string
+
+	// Total size of the partition in bytes.
+	Size uint64
 }
+
+// GetPVName returns the related persistent volume name.
+func (p *PartUsed) GetPVName() string {
+	return fmt.Sprintf("pvc-%v", p.Name)
+}
+
 type partFree struct {
 	DiskName string
 	StartMiB uint64
@@ -162,13 +178,13 @@ func findBestPart(diskName string, partSize uint64) (string, uint64, error) {
 }
 
 // GetAllPartsUsed Todo
-func getAllPartsUsed(diskMetaName string, partitionName string) ([]partUsed, error) {
+func getAllPartsUsed(diskMetaName string, partitionName string) ([]PartUsed, error) {
 	diskList, err := getDiskList()
 	if err != nil {
 		klog.Errorf("GetDiskList failed %s", err)
 		return nil, err
 	}
-	var pList []partUsed
+	var pList []PartUsed
 	for _, disk := range diskList {
 		tmpList, err := GetPartitionList(disk.DiskName, diskMetaName, false)
 		if err != nil {
@@ -177,13 +193,46 @@ func getAllPartsUsed(diskMetaName string, partitionName string) ([]partUsed, err
 		}
 		for _, tmp := range tmpList {
 			if tmp[len(tmp)-1] == partitionName {
-				partNum, _ := strconv.ParseInt(tmp[0], 10, 32)
-				pList = append(pList, partUsed{disk.DiskName, uint32(partNum)})
+				partUsed, err := parsePartUsed(disk.DiskName, tmp)
+				if err != nil {
+					return pList, err
+				}
+				pList = append(pList, partUsed)
 			}
 		}
 	}
 	return pList, nil
+}
 
+// parsePartUsed decodes parted print output to PartUsed struct.
+// for example:
+// $ parted /dev/sdc unit b print --script
+//....
+// Number  Start     End             Size            File system  Name                                  Flags
+// 2      2097152B  9500469755903B  9500467658752B  ext4         5d8d56cb-e291-4dfd-81ac-fb664dd5ec75
+//
+// results in diskName arg as "sdc" and row as list of columns
+// [2,2097152B,9500469755903B,9500467658752B,ext4,5d8d56cb-e291-4dfd-81ac-fb664dd5ec75]
+func parsePartUsed(diskName string, row []string) (PartUsed, error) {
+	p := PartUsed{DiskName: diskName}
+	if len(row) < 5 {
+		return p, fmt.Errorf("invalid parted row format for disk %q - %+v", diskName, row)
+	}
+	partNum, err := strconv.ParseInt(row[0], 10, 32)
+	if err != nil {
+		return p, fmt.Errorf("invalid part number for disk %q - %+v", diskName, row)
+	}
+
+	size, err := strconv.ParseUint(strings.TrimRight(strings.ToUpper(row[3]), "B"), 10, 64)
+	if err != nil {
+		return p, fmt.Errorf("invalid part size for disk %q - %+v", diskName, row)
+	}
+
+	p.PartNum = uint32(partNum)
+	p.Name = row[len(row)-1]
+	p.DevicePath = getPartitionPath(diskName, p.PartNum)
+	p.Size = size
+	return p, nil
 }
 
 // DestroyVolume Todo
@@ -404,17 +453,24 @@ func getDiskMetaName(diskName string) (string, error) {
 		return "", err
 	}
 	for _, tmp := range tmpList {
-		if tmp[0] == "1" {
-			// DiskMetaPartition will not contain Flags, Filesystem, hence the number of columns would be 5
-			// and the Name will not contain special characters
-			last := tmp[len(tmp)-1]
-			if len(tmp) == 5 && regexp.MustCompile(`^[a-zA-Z0-9_.-]*$`).MatchString(last) && last != "ext4" {
-				return last, nil
-			}
+		if partName, ok := getMetaPartition(tmp); ok {
+			return partName, err
 		}
 	}
 	return "", errors.New("Meta Partition not found")
+}
 
+// getMetaPartition checks if the given parted row is meta partition or not.
+func getMetaPartition(tmp []string) (string, bool) {
+	if tmp[0] == "1" {
+		// DiskMetaPartition will not contain Flags, Filesystem, hence the number of columns would be 5
+		// and the Name will not contain special characters
+		last := tmp[len(tmp)-1]
+		if len(tmp) == 5 && regexp.MustCompile(`^[a-zA-Z0-9_.-]*$`).MatchString(last) && last != "ext4" {
+			return last, true
+		}
+	}
+	return "", false
 }
 
 // GetDiskDetails Todo
@@ -448,6 +504,38 @@ func GetDiskDetails() ([]apis.Device, error) {
 
 	klog.Infof("%+v", result)
 	return result, nil
+}
+
+// ListPartUsed lists all disk partitions created by plugin.
+func ListPartUsed() ([]PartUsed, error) {
+	diskList, err := getDiskList()
+	if err != nil {
+		return nil, fmt.Errorf("failed to list disk: %v", err)
+	}
+	plist := make([]PartUsed, 0)
+	for _, disk := range diskList {
+		tmpList, err := GetPartitionList(disk.DiskName, "", false)
+		if err != nil {
+			klog.Errorf("failed to list partition for disk %q: %v", disk.DiskName, err)
+			continue
+		}
+		if len(tmpList) == 0 {
+			continue
+		}
+		// see if the first partition is meta partition or not.
+		if _, ok := getMetaPartition(tmpList[0]); !ok {
+			continue
+		}
+		// ignoring first meta partition
+		for i := 1; i < len(tmpList); i++ {
+			part, err := parsePartUsed(disk.DiskName, tmpList[i])
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse parted output: %v", err)
+			}
+			plist = append(plist, part)
+		}
+	}
+	return plist, nil
 }
 
 // getPartitionPath gets the partition path from disk name and partition number.
