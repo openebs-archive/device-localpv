@@ -67,7 +67,7 @@ func Test_parsePartUsed(t *testing.T) {
 			diskName: "sdc",
 			row:      []string{"2", "2097152B", "9500469755903B", "9500467658752B", "ext4", "5d8d56cb-e291-4dfd-81ac-fb664dd5ec75"},
 			partUsed: PartUsed{
-				DiskName:   "sdc",
+				DiskPath:   "sdc",
 				PartNum:    2,
 				Name:       "5d8d56cb-e291-4dfd-81ac-fb664dd5ec75",
 				DevicePath: "/dev/sdc2",
@@ -80,7 +80,7 @@ func Test_parsePartUsed(t *testing.T) {
 			diskName: "sdc",
 			row:      []string{"2", "2097152B", "9500469755903B", "ext4", "9500467658752B", "5d8d56cb-e291-4dfd-81ac-fb664dd5ec75"},
 			partUsed: PartUsed{
-				DiskName: "sdc",
+				DiskPath: "sdc",
 			},
 			wantErr: true,
 		},
