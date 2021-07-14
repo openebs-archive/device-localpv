@@ -440,6 +440,7 @@ func getDiskList() ([]diskDetail, error) {
 		if len(tmp) == 0 {
 			continue
 		}
+
 		// loop is added here for testing purposes
 		if tmp[5] == deviceTypeDisk ||
 			tmp[5] == deviceTypeLoop {
@@ -509,11 +510,6 @@ func GetDiskDetails() ([]apis.Device, error) {
 		return nil, err
 	}
 	for _, diskIter := range diskList {
-
-		// add the disk filters that need to be applied
-		if diskIter.deviceType != deviceTypeDisk {
-			continue
-		}
 
 		metaName, err := getDiskMetaName(diskIter.DiskPath)
 		if err != nil {
