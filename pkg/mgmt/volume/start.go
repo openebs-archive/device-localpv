@@ -86,7 +86,7 @@ func Start(controllerMtx *sync.RWMutex, stopCh <-chan struct{}) error {
 	go VolInformerFactory.Start(stopCh)
 
 	// Threadiness defines the number of workers to be launched in Run function
-	return controller.Run(2, stopCh)
+	return controller.Run(1, stopCh)
 }
 
 // GetClusterConfig return the config for k8s.
