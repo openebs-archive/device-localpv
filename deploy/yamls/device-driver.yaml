@@ -281,6 +281,7 @@ spec:
             - "--nodeid=$(OPENEBS_NODE_ID)"
             - "--endpoint=$(OPENEBS_CSI_ENDPOINT)"
             - "--plugin=$(OPENEBS_NODE_DRIVER)"
+            - "--listen-address=$(METRICS_LISTEN_ADDRESS)"
           env:
             - name: OPENEBS_NODE_ID
               valueFrom:
@@ -292,6 +293,8 @@ spec:
               value: agent
             - name: DEVICE_DRIVER_NAMESPACE
               value: openebs
+            - name: METRICS_LISTEN_ADDRESS
+              value: :9501
           volumeMounts:
             - name: plugin-dir
               mountPath: /plugin
@@ -320,3 +323,19 @@ spec:
             path: /var/lib/kubelet/
             type: Directory
 ---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: openebs-device-node-service
+  labels:
+    name: openebs-device-node
+    openebs.io/storage-engine-type: LocalPV
+spec:
+  clusterIP: None
+  ports:
+    - name: metrics
+      port: 9501
+      targetPort: 9501
+  selector:
+    app: openebs-device-node
