@@ -77,8 +77,9 @@ type partFree struct {
 }
 
 type diskDetail struct {
-	DiskPath string
-	Size     uint64
+	DiskPath   string
+	Size       uint64
+	deviceType string
 }
 
 // CreateVolume creates a partition on the disk with partition name as the pv name
@@ -443,7 +444,7 @@ func getDiskList() ([]diskDetail, error) {
 		if tmp[5] == deviceTypeDisk ||
 			tmp[5] == deviceTypeLoop {
 			diskSize, _ := strconv.ParseUint(tmp[3], 10, 64)
-			result = append(result, diskDetail{tmp[0], diskSize})
+			result = append(result, diskDetail{tmp[0], diskSize, tmp[5]})
 		}
 	}
 	return result, nil
@@ -508,6 +509,12 @@ func GetDiskDetails() ([]apis.Device, error) {
 		return nil, err
 	}
 	for _, diskIter := range diskList {
+
+		// add the disk filters that need to be applied
+		if diskIter.deviceType != deviceTypeDisk {
+			continue
+		}
+
 		metaName, err := getDiskMetaName(diskIter.DiskPath)
 		if err != nil {
 			klog.Errorf("Device LocalPV: getDiskMetaName Failed %s", diskIter.DiskPath)
