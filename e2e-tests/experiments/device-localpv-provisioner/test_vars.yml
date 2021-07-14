@@ -1,0 +1,13 @@
+test_name: device-localpv-provisioner
+
+device_branch: "{{ lookup('env','DEVICE_BRANCH') }}"
+
+device_driver_image: "{{ lookup('env','DEVICE_DRIVER_IMAGE') }}"
+
+device_operator_ns: "{{ lookup('env','DEVICE_OPERATOR_NAMESPACE') }}"
+
+pv_disk: "{{ lookup('env','PHYSICAL_DISK') }}"
+
+device_name: "{{ lookup('env','DEVICE_NAME') }}"
+
+node_names: "{{ lookup('env','NODE_NAMES') }}"

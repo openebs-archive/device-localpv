@@ -1,0 +1,74 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: device-localpv-provisioner-
+  namespace: e2e
+spec:
+  template:
+    metadata:
+      name: device-localpv-provisioner
+      labels:
+        test: device-localpv-provisioner
+    spec:
+      serviceAccountName: e2e
+      restartPolicy: Never
+      containers:
+      - name: ansibletest
+        image: openebs/device-localpv-e2e:ci
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: ANSIBLE_STDOUT_CALLBACK
+            value: default
+
+            # This test will download the device-localpv operator file from this branch.
+            # Change the env value according to versioned branch name for device-localpv provisioner
+            # from openebs/device-localpv repo. for e.g. (v0.1.x , v0.2.x  OR  master)
+            # by default test-specific value of `DEVICE_BRANCH` is master. 
+          - name: DEVICE_BRANCH  
+            value: 'master'
+           
+            # In each branch of openebs/device-localpv repo device-localpv driver is set to `ci` tag
+            # `openebs/device-driver:ci`. Give the full image name here with desired image tag to replace
+            # it with `ci` tag. for e.g. (openebs/device-driver:0.1.0). Leaving this env empty will 
+            # apply the operator yaml with by default present `ci` tag i.e. `openebs/device-driver:ci`
+          - name: DEVICE_DRIVER_IMAGE
+            value: ''
+            
+            # This is the namespace where the device driver will create all its resources.
+            # By default it is in openebs namespace. If we want to change it to use a different
+            # namespace change the value of this env with desired namespace name.
+          - name: DEVICE_OPERATOR_NAMESPACE
+            value: 'openebs'
+
+            # If you want this e2e-test to create meta partition then use value: 'true'
+            # And if you have already created it then please use value: 'false', so it will skip meta
+            # partition creation via execution of this test.
+          - name: META_PARTITION_CREATION
+            value: ''
+            
+            # Give here the physical disk attached to the nodes, on which meta partition will be created
+            # and then this device will be used for device-localpv. If already created leave this env blank.
+          - name: PHYSICAL_DISK
+            value: ''
+
+            # Give the device name, meta partition on disk will be created with this name
+            # and for device-localpv this partition name will be used to identify disk.
+            # If you have already created meta partition, give here that partition name.
+          - name: DEVICE_NAME
+            value: 'e2e-test-device'
+
+            # Provide here the name of nodes on which we want meta partition on device to be created. 
+            # Leaving this blank will create meta partition on all schedulable nodes. If already created
+            # then please give all node names in comma seperated format for e.g. ('node-1,node-2,node-3')
+          - name: NODE_NAMES
+            value: ''
+
+            # If we want to create some generally used storage_classes for provisioning of device volumes
+            # provide `true` as the value for this env. by default test-specific value for this env is 
+            # blank that means it will not create any storage-class in execution of this test.
+          - name: STORAGE_CLASS_CREATION
+            value: ''
+
+        command: ["/bin/bash"]
+        args: ["-c", "ansible-playbook ./e2e-tests/experiments/device-localpv-provisioner/test.yml -i /etc/ansible/hosts -v; exit 0"]

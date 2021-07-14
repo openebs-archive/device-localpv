@@ -1,0 +1,33 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: device-sc-ext4
+allowVolumeExpansion: true
+parameters:
+  fsType: "ext4"
+  devname: "{{ device_name }}"
+provisioner: device.csi.openebs.io
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: device-sc-ext4-wfc
+allowVolumeExpansion: true
+parameters:
+  fsType: "ext4"
+  devname: "{{ device_name }}"
+provisioner: device.csi.openebs.io
+volumeBindingMode: WaitForFirstConsumer
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: device-sc-xfs
+allowVolumeExpansion: true
+parameters:
+  fsType: "xfs"
+  devname: "{{ device_name }}"
+provisioner: device.csi.openebs.io

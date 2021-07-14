@@ -1,0 +1,7 @@
+test_name: devicepv-custom-topology-test
+
+app_ns: "{{ lookup('env','APP_NAMESPACE') }}"
+
+device_name: "{{ lookup('env','DEVICE_NAME') }}"
+
+node_label: "{{ lookup('env','NODE_LABEL') }}"
