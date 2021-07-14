@@ -570,7 +570,6 @@ metadata:
   name: openebs-device-node-service
   labels:
     name: openebs-device-node
-    openebs.io/storage-engine-type: LocalPV
 spec:
   clusterIP: None
   ports:
