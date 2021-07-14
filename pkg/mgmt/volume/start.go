@@ -86,7 +86,11 @@ func Start(controllerMtx *sync.RWMutex, stopCh <-chan struct{}) error {
 	go VolInformerFactory.Start(stopCh)
 
 	// Threadiness defines the number of workers to be launched in Run function
-	return controller.Run(2, stopCh)
+	// The no.of threads is set to 1 here as using `parted` command for creation/deletion
+	// of partitions from multiple threads can lead to race condition and eventually some
+	// partitions not getting cleaned up from the disk.
+	// Ref: https://github.com/openebs/device-localpv/issues/21
+	return controller.Run(1, stopCh)
 }
 
 // GetClusterConfig return the config for k8s.
