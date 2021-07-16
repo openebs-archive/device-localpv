@@ -4,6 +4,7 @@
 [![Community Meetings](https://img.shields.io/badge/Community-Meetings-blue)](https://hackmd.io/yJb407JWRyiwLU-XDndOLA?view)
 [![Go Report](https://goreportcard.com/badge/github.com/openebs/device-localpv)](https://goreportcard.com/report/github.com/openebs/device-localpv)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4871/badge)](https://bestpractices.coreinfrastructure.org/projects/4871)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fopenebs%2Fdevice-localpv.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fopenebs%2Fdevice-localpv?ref=badge_shield)
 
 <img width="300" align="right" alt="OpenEBS Logo" src="https://raw.githubusercontent.com/cncf/artwork/master/projects/openebs/stacked/color/openebs-stacked-color.png" xmlns="http://www.w3.org/1999/html">
 
@@ -233,3 +234,7 @@ Project Roadmap
 ---
 
 The project roadmap is defined and tracked using github projects [here]()
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fopenebs%2Fdevice-localpv.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fopenebs%2Fdevice-localpv?ref=badge_large)
