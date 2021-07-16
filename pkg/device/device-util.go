@@ -36,8 +36,8 @@ import (
 const (
 	PartitionDiskID    = "fdisk -l /dev/%s"
 	PartitionDiskList  = "lsblk -b"
-	PartitionPrintFree = "parted /dev/%s unit b print free --script"
-	PartitionPrint     = "parted /dev/%s unit b print --script"
+	PartitionPrintFree = "parted /dev/%s unit b print free --script -m"
+	PartitionPrint     = "parted /dev/%s unit b print --script -m"
 	PartitionCreate    = "parted /dev/%s mkpart %s %dMiB %dMiB --script"
 	PartitionDelete    = "parted /dev/%s rm %d --script"
 	PartitionWipeFS    = "wipefs --force -a %s"
@@ -47,6 +47,22 @@ const (
 const (
 	deviceTypeDisk = "disk"
 	deviceTypeLoop = "loop"
+)
+
+const (
+	partitionTypeGPT    = "gpt"
+	metaPartitionNumber = "1"
+)
+
+// column indices for command outputs
+const (
+	partedDiskInfoPartTypeIndex = 5
+	partedPartInfoPartNumIndex  = 0
+	partedPartInfoPartNameIndex = 5
+
+	lsblkDevTypeIndex = 5
+	lsblkSizeIndex    = 3
+	lsblkNameIndex    = 0
 )
 
 // PartUsed represents disk partition created by device plugin.
@@ -223,13 +239,12 @@ func getAllPartsUsed(diskMetaName string, partitionName string) ([]PartUsed, err
 
 // parsePartUsed decodes parted print output to PartUsed struct.
 // for example:
-// $ parted /dev/sdc unit b print --script
+// $ parted /dev/sdc unit b print --script -m
 //....
-// Number  Start     End             Size            File system  Name                                  Flags
-// 2      2097152B  9500469755903B  9500467658752B  ext4         5d8d56cb-e291-4dfd-81ac-fb664dd5ec75
+// 2:11534336B:20971519B:9437184B:ext4:5d8d56cb-e291-4dfd-81ac-fb664dd5ec75:;
 //
-// results in diskName arg as "sdc" and row as list of columns
-// [2,2097152B,9500469755903B,9500467658752B,ext4,5d8d56cb-e291-4dfd-81ac-fb664dd5ec75]
+// results in diskPath arg as "sdc" and row as list of columns
+// [2,11534336B,20971519B,9437184B,ext4,5d8d56cb-e291-4dfd-81ac-fb664dd5ec75]
 func parsePartUsed(diskPath string, row []string) (PartUsed, error) {
 	p := PartUsed{DiskPath: diskPath}
 	if len(row) < 5 {
@@ -255,7 +270,7 @@ func parsePartUsed(diskPath string, row []string) (PartUsed, error) {
 // DestroyVolume Todo
 func DestroyVolume(vol *apis.DeviceVolume) error {
 	diskMetaName := vol.Spec.DevName
-	partitionName := vol.Name[4:]
+	partitionName := getPartitionName(vol.Name)
 	pList, err := getAllPartsUsed(diskMetaName, partitionName)
 	if err != nil {
 		klog.Errorf("GetAllPartsUsed failed %s", err)
@@ -306,7 +321,7 @@ func wipeFsPartition(disk string, partNum uint32) error {
 // eg: /dev/sda1, /dev/nvme0n1p1
 func GetVolumeDevPath(vol *apis.DeviceVolume) (string, error) {
 	diskMetaName := vol.Spec.DevName
-	partitionName := vol.Name[4:]
+	partitionName := getPartitionName(vol.Name)
 	pList, err := getAllPartsUsed(diskMetaName, partitionName)
 	if err != nil {
 		klog.Errorf("GetAllPartsUsed failed %s", err)
@@ -349,30 +364,36 @@ func GetPartitionList(diskPath string, diskMetaName string, free bool) ([][]stri
 		klog.Errorf("Device LocalPV: could not get parts error: %s %v\n", out, err)
 		return nil, err
 	}
-	sli := strings.Split(out, "\n")
-	start := false
+	// the output will be of the following format
+	// BYT;
+	// "path":"size":"transport-type":"logical-sector-size":"physical-sector-size":"partition-table-type":"model-name";
+	// "number":"begin":"end":"size":"filesystem-type":"partition-name":"flags-set";
+	//
+	// CHS/CYL types are not considered as they are not that common.
+	rows := strings.Split(out, ";")
+
+	deviceRow := strings.Split(rows[1], ":")
+	if deviceRow[partedDiskInfoPartTypeIndex] != partitionTypeGPT {
+		klog.Infof("Disk: %s Not a GPT Partitioned Disk", diskPath)
+		return nil, errors.New("Wrong Partition type")
+	}
+
 	var result [][]string
-	for _, value := range sli {
-		tmp := strings.Fields(value)
+	// skipping first 2 rows as they contain output units and disk information
+	for _, value := range rows[2:] {
+		tmp := strings.Split(value, ":")
 		if len(tmp) == 0 {
 			continue
 		}
-		if tmp[0] == "Partition" && tmp[1] == "Table" && tmp[2] != "gpt" {
-			klog.Infof("Disk: %s Not an GPT Partitioned Disk", diskPath)
-			return nil, errors.New("Wrong Partition type")
-		}
-		if !start {
-			if tmp[0] == "Number" {
-				start = true
-			}
-			continue
-		}
+
 		devRegex, err := regexp.Compile(diskMetaName)
 		if err != nil {
 			klog.Infof("Disk: Regex compile failure %s, %+v", diskMetaName, err)
 			return nil, err
 		}
-		if diskMetaName != "" && tmp[0] == "1" && !devRegex.MatchString(tmp[len(tmp)-1]) {
+		if diskMetaName != "" &&
+			tmp[partedPartInfoPartNumIndex] == metaPartitionNumber &&
+			!devRegex.MatchString(tmp[partedPartInfoPartNameIndex]) {
 			klog.Infof("Disk: DiskPath not correct")
 			return nil, errors.New("Wrong DiskMetaName")
 		}
@@ -442,10 +463,10 @@ func getDiskList() ([]diskDetail, error) {
 		}
 
 		// loop is added here for testing purposes
-		if tmp[5] == deviceTypeDisk ||
-			tmp[5] == deviceTypeLoop {
-			diskSize, _ := strconv.ParseUint(tmp[3], 10, 64)
-			result = append(result, diskDetail{tmp[0], diskSize, tmp[5]})
+		if tmp[lsblkDevTypeIndex] == deviceTypeDisk ||
+			tmp[lsblkDevTypeIndex] == deviceTypeLoop {
+			diskSize, _ := strconv.ParseUint(tmp[lsblkSizeIndex], 10, 64)
+			result = append(result, diskDetail{tmp[lsblkNameIndex], diskSize, tmp[5]})
 		}
 	}
 	return result, nil
@@ -463,7 +484,7 @@ func getDiskIdentifier(disk string) (string, error) {
 		if len(tmp) == 0 {
 			continue
 		}
-		if tmp[0] == "Disklabel" && tmp[1] == "type:" && tmp[2] != "gpt" {
+		if tmp[0] == "Disklabel" && tmp[1] == "type:" && tmp[2] != partitionTypeGPT {
 			return "", errors.New("Not an GPT disk")
 		}
 		if tmp[0] == "Disk" && tmp[1] == "identifier:" {
@@ -574,4 +595,9 @@ func getPartitionPath(diskName string, partNum uint32) string {
 		return fmt.Sprintf("/dev/%sp%d", diskName, partNum)
 	}
 	return fmt.Sprintf("/dev/%s%d", diskName, partNum)
+}
+
+// getPartitionName returns the partition name from volume name
+func getPartitionName(volumeName string) string {
+	return strings.TrimPrefix(volumeName, "pvc-")
 }
