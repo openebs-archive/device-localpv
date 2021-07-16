@@ -12,7 +12,7 @@ CSI Driver for using Local Block Devices
 
 ## Project Status
 
-Currently, the Device-LocalPV CSI Driver is in pre-alpha.
+Currently, the Device-LocalPV CSI Driver is in pre-alpha. The users/organizations using OpenEBS can be found [here](https://github.com/openebs/zfs-localpv/blob/master/Adopters.md)
 
 ## Usage
 
@@ -223,17 +223,19 @@ Features
 - [x] Supports fsTypes: `ext4`, `xfs`
 - [x] Volume metrics
 - [x] Topology
-- [ ] Snapshot
-- [ ] Clone
+- [ ] ~~Snapshot~~
+- [ ] ~~Clone~~
 - [ ] Volume Resize
-- [ ] Thin Provision
+- [ ] ~~Thin Provision~~
 - [ ] Backup/Restore
 - [ ] Ephemeral inline volume
+
+The FAQ guide can be found [here](https://github.com/openebs/device-localpv/blob/develop/docs/faq.md) 
 
 Project Roadmap
 ---
 
-The project roadmap is defined and tracked using github projects [here]()
+The project roadmap is defined and tracked using github projects [here](https://github.com/orgs/openebs/projects/37)
 
 
 ## License
