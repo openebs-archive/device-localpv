@@ -241,6 +241,23 @@ status:
 
 ---
 
+apiVersion: v1
+kind: Service
+metadata:
+  name: openebs-device-node-service
+  labels:
+    name: openebs-device-node
+spec:
+  clusterIP: None
+  ports:
+    - name: metrics
+      port: 9501
+      targetPort: 9501
+  selector:
+    app: openebs-device-node
+
+---
+
 # Create the CSI Driver object
 apiVersion: storage.k8s.io/v1beta1
 kind: CSIDriver
@@ -521,6 +538,7 @@ spec:
             - "--nodeid=$(OPENEBS_NODE_ID)"
             - "--endpoint=$(OPENEBS_CSI_ENDPOINT)"
             - "--plugin=$(OPENEBS_NODE_DRIVER)"
+            - "--listen-address=$(METRICS_LISTEN_ADDRESS)"
           env:
             - name: OPENEBS_NODE_ID
               valueFrom:
@@ -532,6 +550,8 @@ spec:
               value: agent
             - name: DEVICE_DRIVER_NAMESPACE
               value: openebs
+            - name: METRICS_LISTEN_ADDRESS
+              value: :9501
           volumeMounts:
             - name: plugin-dir
               mountPath: /plugin
@@ -559,4 +579,3 @@ spec:
           hostPath:
             path: /var/lib/kubelet/
             type: Directory
----
