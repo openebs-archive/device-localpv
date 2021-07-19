@@ -583,8 +583,8 @@ func GetDiskDetails() ([]apis.Device, error) {
 		result = append(result, apis.Device{
 			Name: metaName,
 			UUID: id,
-			Size: *resource.NewQuantity(int64(diskIter.Size), resource.DecimalSI),
-			Free: *resource.NewQuantity(int64(free*1024*1024), resource.DecimalSI),
+			Size: *resource.NewQuantity(int64(diskIter.Size), resource.BinarySI),
+			Free: *resource.NewQuantity(int64(free*1024*1024), resource.BinarySI),
 		})
 	}
 
