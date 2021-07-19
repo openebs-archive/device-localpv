@@ -402,7 +402,7 @@ func GetPartitionList(diskPath string, diskMetaName string, free bool) ([]parted
 	// "number":"begin":"end":"size":"filesystem-type":"partition-name":"flags-set";
 	//
 	// CHS/CYL types are not considered as they are not that common.
-	rows := strings.Split(out, ";")
+	rows := strings.Split(out, "\n")
 
 	deviceRow := strings.Split(rows[1], ":")
 	if deviceRow[partedDiskInfoPartTypeIndex] != partitionTypeGPT {
@@ -414,7 +414,11 @@ func GetPartitionList(diskPath string, diskMetaName string, free bool) ([]parted
 	// skipping first 2 rows as they contain output units and disk information
 	for _, value := range rows[2:] {
 
+		if len(value) == 0 {
+			continue
+		}
 		partitionRow, err := parsePartedPartitionRow(value)
+
 		if err != nil {
 			klog.Errorf("parsing parted output failed")
 			return nil, fmt.Errorf("parsing parted output failed for disk %s, err: %v", diskPath, err)
@@ -526,7 +530,7 @@ func getDiskIdentifier(disk string) (string, error) {
 func getDiskMetaName(diskName string) (string, error) {
 	tmpList, err := GetPartitionList(diskName, "", false)
 	if err != nil {
-		klog.Infof("GetPart Error, %s", diskName)
+		klog.Errorf("GetPart Error, %s. err: %v", diskName, err)
 		return "", err
 	}
 	for _, tmp := range tmpList {
@@ -637,13 +641,16 @@ func getPartitionName(volumeName string) string {
 // parsePartedPartitionRow parses a single partition row in the output of parted command
 func parsePartedPartitionRow(partitionRow string) (partedOutput, error) {
 
+	// trim the ; from machine parseable output
+	partitionRow = strings.TrimSuffix(partitionRow, ";")
+
 	tmp := strings.Split(partitionRow, ":")
 
 	var partition partedOutput
 
 	partitionNumber, err := strconv.ParseInt(tmp[partedPartInfoPartNumIndex], 10, 32)
 	if err != nil {
-		return partition, fmt.Errorf("invalid partition number. err: %v", err)
+		return partition, fmt.Errorf("invalid partition number. row: %s, err: %v", partitionRow, err)
 	}
 
 	beginBytes, _ := strconv.ParseUint(tmp[partedPartInfoBeginBytesIndex][:len(tmp[partedPartInfoBeginBytesIndex])-1], 10, 64)

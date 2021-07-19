@@ -130,7 +130,7 @@ func Test_parsePartedPartitionRow(t *testing.T) {
 	}{
 		{
 			name: "valid partition row",
-			args: "1:1048576B:10485759B:9437184B::test-device:",
+			args: "1:1048576B:10485759B:9437184B::test-device:;",
 			want: partedOutput{
 				1,
 				1048576,
@@ -144,7 +144,7 @@ func Test_parsePartedPartitionRow(t *testing.T) {
 		},
 		{
 			name: "valid free slot",
-			args: "1:10485760B:17179852287B:17169366528B:free",
+			args: "1:10485760B:17179852287B:17169366528B:free;",
 			want: partedOutput{
 				partNum:    1,
 				beginBytes: 10485760,
@@ -158,7 +158,7 @@ func Test_parsePartedPartitionRow(t *testing.T) {
 		},
 		{
 			name: "partition with fs and flags",
-			args: "1:1048576B:511705087B:510656512B:fat32::boot, esp",
+			args: "1:1048576B:511705087B:510656512B:fat32::boot, esp;",
 			want: partedOutput{
 				partNum:    1,
 				beginBytes: 1048576,
