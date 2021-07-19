@@ -53,6 +53,7 @@ func Test_getMetaPartition(t *testing.T) {
 				beginBytes: beginBytes,
 				endBytes:   endBytes,
 				size:       sizeBytes,
+				fsType:     "ext4",
 				partName:   "HDD-JBOD-2216723-1",
 			},
 			partName: "",
