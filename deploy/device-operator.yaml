@@ -250,7 +250,6 @@ spec:
   # do not require volumeattachment
   attachRequired: false
   podInfoOnMount: true
-  storageCapacity: true
 ---
 
 ##############################################
@@ -385,8 +384,8 @@ spec:
             - name: socket-dir
               mountPath: /var/lib/csi/sockets/pluginproxy/
         - name: openebs-device-plugin
-          image: openebs/device-driver:ci
-          imagePullPolicy: IfNotPresent
+          image: akhilerm/device-driver:ci
+          imagePullPolicy: Always
           env:
             - name: OPENEBS_CONTROLLER_DRIVER
               value: controller
@@ -515,8 +514,8 @@ spec:
           securityContext:
             privileged: true
             allowPrivilegeEscalation: true
-          image: openebs/device-driver:ci
-          imagePullPolicy: IfNotPresent
+          image: akhilerm/device-driver:ci
+          imagePullPolicy: Always
           args:
             - "--nodeid=$(OPENEBS_NODE_ID)"
             - "--endpoint=$(OPENEBS_CSI_ENDPOINT)"

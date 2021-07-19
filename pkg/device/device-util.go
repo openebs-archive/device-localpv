@@ -227,6 +227,10 @@ func findBestPart(diskMetaName string, partSize uint64) (string, uint64, error) 
 		return "", 0, err
 	}
 
+	if len(pList) == 0 {
+		return "", 0, fmt.Errorf("could not find any free slots on disk name: %s", diskMetaName)
+	}
+
 	if len(pList) > 0 {
 		sort.Slice(pList, func(i, j int) bool {
 			// "<" Ascending order
@@ -430,9 +434,10 @@ func GetPartitionList(diskPath string, diskMetaName string, free bool) ([]parted
 			return nil, err
 		}
 		if diskMetaName != "" &&
+			partitionRow.fsType != freeSlotFSType &&
 			partitionRow.partNum == metaPartitionNumber &&
 			!devRegex.MatchString(partitionRow.partName) {
-			klog.Infof("Disk: DiskPath not correct")
+			klog.Errorf("Disk: %s DiskPath not correct, partition entry: %v", diskPath, partitionRow)
 			return nil, errors.New("Wrong DiskMetaName")
 		}
 
@@ -567,17 +572,17 @@ func GetDiskDetails() ([]apis.Device, error) {
 
 		metaName, err := getDiskMetaName(diskIter.DiskPath)
 		if err != nil {
-			klog.Errorf("Device LocalPV: getDiskMetaName Failed %s", diskIter.DiskPath)
+			klog.Errorf("Device LocalPV: getDiskMetaName Failed %s, error: %v", diskIter.DiskPath, err)
 			continue
 		}
 		id, err := getDiskIdentifier(diskIter.DiskPath)
 		if err != nil {
-			klog.Errorf("Device LocalPV: getDiskIdentifier Failed %s", diskIter.DiskPath)
+			klog.Errorf("Device LocalPV: getDiskIdentifier Failed %s, error: %v", diskIter.DiskPath, err)
 			continue
 		}
 		free, err := GetFreeCapacity(diskIter.DiskPath)
 		if err != nil {
-			klog.Errorf("Device LocalPV: GetFreeCapacity Failed %s", diskIter.DiskPath)
+			klog.Errorf("Device LocalPV: GetFreeCapacity Failed %s, error: %v", diskIter.DiskPath, err)
 			continue
 		}
 		result = append(result, apis.Device{
