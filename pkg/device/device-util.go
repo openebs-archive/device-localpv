@@ -658,9 +658,20 @@ func parsePartedPartitionRow(partitionRow string) (partedOutput, error) {
 		return partition, fmt.Errorf("invalid partition number. row: %s, err: %v", partitionRow, err)
 	}
 
-	beginBytes, _ := strconv.ParseUint(tmp[partedPartInfoBeginBytesIndex][:len(tmp[partedPartInfoBeginBytesIndex])-1], 10, 64)
-	endBytes, _ := strconv.ParseUint(tmp[partedPartInfoEndBytesIndex][:len(tmp[partedPartInfoEndBytesIndex])-1], 10, 64)
-	size, _ := strconv.ParseUint(tmp[partedPartInfoSizeIndex][:len(tmp[partedPartInfoSizeIndex])-1], 10, 64)
+	beginBytes, err := strconv.ParseUint(tmp[partedPartInfoBeginBytesIndex][:len(tmp[partedPartInfoBeginBytesIndex])-1], 10, 64)
+	if err != nil {
+		return partition, fmt.Errorf("failed to parse begin bytes from %v. err: %s", partitionRow, err)
+	}
+
+	endBytes, err := strconv.ParseUint(tmp[partedPartInfoEndBytesIndex][:len(tmp[partedPartInfoEndBytesIndex])-1], 10, 64)
+	if err != nil {
+		return partition, fmt.Errorf("failed to parse end bytes from %v. err: %s", partitionRow, err)
+	}
+
+	size, err := strconv.ParseUint(tmp[partedPartInfoSizeIndex][:len(tmp[partedPartInfoSizeIndex])-1], 10, 64)
+	if err != nil {
+		return partition, fmt.Errorf("failed to parse size from %v. err: %s", partitionRow, err)
+	}
 
 	partition.partNum = uint32(partitionNumber)
 	partition.beginBytes = beginBytes
