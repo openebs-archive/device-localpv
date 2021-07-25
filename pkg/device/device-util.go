@@ -503,7 +503,10 @@ func getDiskList() ([]diskDetail, error) {
 		// loop is added here for testing purposes
 		if tmp[lsblkDevTypeIndex] == deviceTypeDisk ||
 			tmp[lsblkDevTypeIndex] == deviceTypeLoop {
-			diskSize, _ := strconv.ParseUint(tmp[lsblkSizeIndex], 10, 64)
+			diskSize, err := strconv.ParseUint(tmp[lsblkSizeIndex], 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("error parsing disk size from %v. error %s", tmp, err)
+			}
 			result = append(result, diskDetail{tmp[lsblkNameIndex], diskSize, tmp[5]})
 		}
 	}
