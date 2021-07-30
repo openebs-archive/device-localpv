@@ -243,7 +243,7 @@ func findBestPart(diskMetaName string, partSize uint64) (string, uint64, error) 
 		}
 	}
 	klog.Errorln("Device LocalPV: Free space for partition is not found")
-	return "", 0, err
+	return "", 0, fmt.Errorf("free space of %dMiB not found on disk name: %s", partSize, diskMetaName)
 
 }
 
@@ -479,8 +479,7 @@ func GetFreeCapacity(diskPath string) (uint64, error) {
 		})
 		return pList[0].SizeMiB, nil
 	}
-	klog.Errorln("Device LocalPV: Free space for partition is not found")
-	return 0, err
+	return 0, nil
 }
 
 // getDiskList gets the list of disks on the node with path and size
