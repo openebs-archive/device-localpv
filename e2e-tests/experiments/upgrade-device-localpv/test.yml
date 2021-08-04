@@ -1,0 +1,158 @@
+- hosts: localhost
+  connection: local
+  gather_facts: False
+
+  vars_files:
+  - test_vars.yml
+    
+  tasks:
+
+    - block:
+    
+          ## Generating the testname for device localpv upgrade test
+        - include_tasks: /e2e-tests/hack/create_testname.yml
+
+          ## Record SOT (start of test) in e2e result e2e-cr (e2e-custom-resource)
+        - include_tasks: /e2e-tests/hack/update_e2e_result_resource.yml
+          vars:
+            status: 'SOT'
+
+        - name: Get the list of pods of device-localpv components (device-controller and device-node agent deamonset)
+          shell: >
+            kubectl get pods -n kube-system -l role=openebs-device 
+            --no-headers -o custom-columns=:.metadata.name
+          args:
+            executable: /bin/bash
+          register: device_localpv_components
+
+        - name: Verify that the device-localpv components are in running state
+          shell: >
+            kubectl get pods {{ item }} -n kube-system --no-headers -o custom-columns=:status.phase
+          args: 
+            executable: /bin/bash
+          register: device_driver_components
+          failed_when: "device_driver_components.stdout != 'Running'"
+          with_items: "{{ device_localpv_components.stdout_lines }}"
+          ignore_errors: true
+
+        - name: Get the version tag for device-driver
+          shell: >
+            kubectl get sts openebs-device-controller -n kube-system 
+            -o jsonpath='{.spec.template.spec.containers[?(@.name=="openebs-device-plugin")].image}' | cut -d ":" -f2
+          args:
+            executable: /bin/bash
+          register: device_driver_tag
+
+        - name: Get the replica count for device-controller statefulset
+          shell: >
+            kubectl get sts openebs-device-controller -n kube-system -o jsonpath='{.status.replicas}'
+          args: 
+            executable: /bin/bash
+          register: no_of_device_ctrl_replicas
+
+        - name: Record the number of device-controller replicas
+          set_fact:
+            device_ctrl_replicas: "{{ no_of_device_ctrl_replicas.stdout }}"
+
+        - name: Get the list of node-agent pods in openebs-device-node daemonset
+          shell: >
+            kubectl get po -n kube-system -l app=openebs-device-node --no-headers -o custom-columns=:.metadata.name
+          args:
+            executable: /bin/bash
+          register: ds_pods
+            
+        - name: Download the device-operator file
+          get_url:
+            url: https://raw.githubusercontent.com/openebs/device-localpv/{{ to_version_device_branch }}/deploy/device-operator.yaml
+            dest: ./new_device_operator.yml
+            force: yes
+          register: result
+          until: "'OK' in result.msg"
+          delay: 5
+          retries: 3
+                
+        - name: Update the openebs device-driver image 
+          replace:
+            path: ./new_device_operator.yml
+            regexp: openebs/device-driver:ci
+            replace: "{{ lookup('env','TO_VERSION_DEVICE_DRIVER_IMAGE') }}"
+          when: lookup('env','TO_VERSION_DEVICE_DRIVER_IMAGE') | length > 0
+
+        - name: Update the number of device-controller statefulset replicas
+          replace:
+            path: ./new_device_operator.yml
+            regexp: "replicas: 1"
+            replace: "replicas: {{ device_ctrl_replicas }}"
+
+        - name: Apply the device_operator file to deploy device-driver components to the newer version
+          shell: 
+            kubectl apply -f ./new_device_operator.yml
+          args:
+              executable: /bin/bash
+
+        - name: Wait for some time to old device-driver components to go into Terminating state.
+          shell: >
+            sleep 30
+
+        - name: Verify device-node agent previous pods are not present in kube-system namespace
+          shell: >
+            kubectl get pods -n kube-system -l app=openebs-device-node --no-headers
+          args: 
+            executable: /bin/bash
+          register: new_ds_pods
+          until: "'{{ item }}' not in new_ds_pods.stdout"
+          delay: 5
+          retries: 40
+          with_items: "{{ ds_pods.stdout_lines }}"
+
+        - name: Verify device-node agent newer pods are in running status
+          shell: >
+            kubectl get pods -n kube-system -l app=openebs-device-node
+            --no-headers -o custom-columns=:status.phase | sort | uniq
+          args: 
+            executable: /bin/bash
+          register: new_ds_pods
+          until: "new_ds_pods.stdout == 'Running'"
+          delay: 5
+          retries: 30
+
+        - name: Verify that device-node agent daemonset image is upgraded
+          shell: >
+            kubectl get ds openebs-device-node -n kube-system 
+            -o jsonpath='{.spec.template.spec.containers[?(@.name=="openebs-device-plugin")].image}'
+          args: 
+            executable: /bin/bash
+          register: ds_image
+          failed_when: ds_image.stdout != to_version_device_driver_image
+
+        - name: Check for the count of device-controller ready replicas
+          shell: >
+            kubectl get sts openebs-device-controller -n kube-system -o jsonpath='{.status.readyReplicas}'
+          args:
+            executable: /bin/bash
+          register: ready_replicas
+          until: "ready_replicas.stdout|int == device_ctrl_replicas|int"
+          delay: 5
+          retries: 20
+
+        - name: Verify that device-driver version from the device-controller statefulset image is upgraded
+          shell: >
+            kubectl get sts openebs-device-controller -n kube-system
+            -o jsonpath='{.spec.template.spec.containers[?(@.name=="openebs-device-plugin")].image}'
+          args:
+            executable: /bin/bash
+          register: device_ctrl_image
+          failed_when: device_ctrl_image.stdout != to_version_device_driver_image
+
+        - set_fact:
+            flag: "Pass"
+
+      rescue:
+      - set_fact:
+          flag: "Fail"
+
+      always:
+        ## Record SOT (start of test) in e2e result e2e-cr (e2e-custom-resource)
+        - include_tasks: /e2e-tests/hack/update_e2e_result_resource.yml
+          vars:
+            status: 'EOT' 
