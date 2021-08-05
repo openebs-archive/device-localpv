@@ -1,0 +1,7 @@
+test_name: upgrade-device-localpv
+
+to_version_device_branch: "{{ lookup('env','TO_VERSION_DEVICE_BRANCH') }}"
+
+to_version_device_driver_image: "{{ lookup('env','TO_VERSION_DEVICE_DRIVER_IMAGE') }}"
+
+device_operator_ns: "{{ lookup('env','DEVICE_OPERATOR_NAMESPACE') }}"
