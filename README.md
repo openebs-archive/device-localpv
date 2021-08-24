@@ -29,7 +29,7 @@ must meet the following prerequisites:
 
 ### Supported System
 
-K8S : 1.18+
+K8S : 1.20+
 
 OS : Ubuntu
 
