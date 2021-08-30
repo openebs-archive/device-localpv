@@ -29,8 +29,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/openebs/device-localpv/pkg/device"
-	clientset "github.com/openebs/device-localpv/pkg/generated/clientset/internalclientset"
-	informers "github.com/openebs/device-localpv/pkg/generated/informer/externalversions"
+	clientset "github.com/openebs/device-localpv/pkg/generated/clientset/device/internalclientset"
+	informers "github.com/openebs/device-localpv/pkg/generated/informer/device/externalversions"
 )
 
 // Start starts the devicenode controller.
