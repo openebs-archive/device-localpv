@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 
 	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
-	clientset "github.com/openebs/device-localpv/pkg/generated/clientset/internalclientset"
+	clientset "github.com/openebs/device-localpv/pkg/generated/clientset/device/internalclientset"
 	client "github.com/openebs/lib-csi/pkg/common/kubernetes/client"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

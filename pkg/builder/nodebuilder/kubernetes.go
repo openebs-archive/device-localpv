@@ -25,7 +25,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
-	clientset "github.com/openebs/device-localpv/pkg/generated/clientset/internalclientset"
+	clientset "github.com/openebs/device-localpv/pkg/generated/clientset/device/internalclientset"
 )
 
 // getClientsetFn is a typed function that

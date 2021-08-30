@@ -150,7 +150,8 @@ SRC_PKG := github.com/openebs/device-localpv/pkg
 # code generation for custom resources
 .PHONY: kubegen
 kubegen: kubegendelete deepcopy-install clientset-install lister-install informer-install
-	@GEN_SRC=openebs.io/device/v1alpha1 make deepcopy clientset lister informer
+	@GEN_SRC=openebs.io/device/v1alpha1 SUB_DIR=device make deepcopy clientset lister informer
+	@GEN_SRC=openebs.io/scp/v1alpha1 SUB_DIR=scp make deepcopy clientset lister informer
 
 # deletes generated code by codegen
 .PHONY: kubegendelete
@@ -182,7 +183,7 @@ clientset:
 		--fake-clientset=true \
 		--input $(GEN_SRC) \
 		--input-base $(SRC_PKG)/apis \
-		--clientset-path $(SRC_PKG)/generated/clientset \
+		--clientset-path $(SRC_PKG)/generated/clientset/$(SUB_DIR) \
 		--go-header-file ./buildscripts/custom-boilerplate.go.txt
 
 .PHONY: lister-install
@@ -194,7 +195,7 @@ lister:
 	@echo "+ Generating lister for $(GEN_SRC)"
 	@lister-gen \
 		--input-dirs $(SRC_PKG)/apis/$(GEN_SRC) \
-		--output-package $(SRC_PKG)/generated/lister \
+		--output-package $(SRC_PKG)/generated/lister/$(SUB_DIR) \
 		--go-header-file ./buildscripts/custom-boilerplate.go.txt
 
 .PHONY: informer-install
@@ -206,9 +207,9 @@ informer:
 	@echo "+ Generating informer for $(GEN_SRC)"
 	@informer-gen \
 		--input-dirs $(SRC_PKG)/apis/$(GEN_SRC) \
-		--versioned-clientset-package $(SRC_PKG)/generated/clientset/internalclientset \
-		--listers-package $(SRC_PKG)/generated/lister \
-		--output-package $(SRC_PKG)/generated/informer \
+		--versioned-clientset-package $(SRC_PKG)/generated/clientset/$(SUB_DIR)/internalclientset \
+		--listers-package $(SRC_PKG)/generated/lister/$(SUB_DIR) \
+		--output-package $(SRC_PKG)/generated/informer/$(SUB_DIR) \
 		--go-header-file ./buildscripts/custom-boilerplate.go.txt
 
 manifests:

@@ -45,8 +45,8 @@ import (
 	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
 	"github.com/openebs/device-localpv/pkg/builder/volbuilder"
 	"github.com/openebs/device-localpv/pkg/device"
-	clientset "github.com/openebs/device-localpv/pkg/generated/clientset/internalclientset"
-	informers "github.com/openebs/device-localpv/pkg/generated/informer/externalversions"
+	clientset "github.com/openebs/device-localpv/pkg/generated/clientset/device/internalclientset"
+	informers "github.com/openebs/device-localpv/pkg/generated/informer/device/externalversions"
 	csipayload "github.com/openebs/device-localpv/pkg/response"
 )
 

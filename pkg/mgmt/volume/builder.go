@@ -17,10 +17,10 @@ limitations under the License.
 package volume
 
 import (
-	clientset "github.com/openebs/device-localpv/pkg/generated/clientset/internalclientset"
-	openebsScheme "github.com/openebs/device-localpv/pkg/generated/clientset/internalclientset/scheme"
-	informers "github.com/openebs/device-localpv/pkg/generated/informer/externalversions"
-	listers "github.com/openebs/device-localpv/pkg/generated/lister/device/v1alpha1"
+	clientset "github.com/openebs/device-localpv/pkg/generated/clientset/device/internalclientset"
+	openebsScheme "github.com/openebs/device-localpv/pkg/generated/clientset/device/internalclientset/scheme"
+	informers "github.com/openebs/device-localpv/pkg/generated/informer/device/externalversions"
+	listers "github.com/openebs/device-localpv/pkg/generated/lister/device/device/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
