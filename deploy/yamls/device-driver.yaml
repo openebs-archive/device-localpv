@@ -7,6 +7,7 @@ metadata:
   name: openebs-device-node-service
   labels:
     name: openebs-device-node
+  namespace: kube-system
 spec:
   clusterIP: None
   ports:
