@@ -190,7 +190,7 @@ type StoragePoolDataStorageCapabilities struct {
 }
 
 type StoragePoolDataSecurityCapabilities struct {
-	MediaEncryption        *[]StoragePoolCompressionAlgorithm `json:"mediaEncryption,omitempty"`
+	MediaEncryption        *[]StoragePoolMediaEncryptionAlgorithm `json:"mediaEncryption,omitempty"`
 	DataSanitizationPolicy StoragePoolDataSanitizationPolicy  `json:"dataSanitizationPolicy,omitempty"`
 }
 
@@ -245,6 +245,9 @@ const (
 	// TODO: ADD FOR CURRENT USE CASES
 	HuffmanCompression StoragePoolCompressionAlgorithm = "huffman"
 )
+
+type StoragePoolMediaEncryptionAlgorithm string
+
 
 type StoragePoolDataSanitizationPolicy string
 
