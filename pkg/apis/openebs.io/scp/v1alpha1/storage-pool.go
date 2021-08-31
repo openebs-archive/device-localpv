@@ -33,7 +33,7 @@ type StoragePool struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	// Spec is the spec for a StoragePool resource
 	Spec StoragePoolSpec `json:"spec"`
-	// Status is the handing status of StoragePool resource
+	// Status is for handling status of StoragePool resource
 	Status StoragePoolStatus `json:"status,omitempty"`
 }
 
@@ -58,7 +58,7 @@ type StoragePoolSpec struct {
 	RequestedCapacity resource.Quantity `json:"requestedCapacity,omitempty"`
 }
 
-// StoragePoolStatus is the handing status of StoragePool resource
+// StoragePoolStatus is for handling status of StoragePool resource
 type StoragePoolStatus struct {
 	// ReferenceResource
 	ReferenceResource StoragePoolReferenceResource `json:"referenceResource,omitempty"`
@@ -240,6 +240,7 @@ type StoragePoolMode string
 const (
 	// SharedStoragePoolMode if the pool is to be shared
 	SharedStoragePoolMode StoragePoolMode = "Shared"
+
 	// ExclusiveStoragePoolMode if the pool is exclusive
 	ExclusiveStoragePoolMode StoragePoolMode = "Exclusive"
 )
@@ -260,6 +261,7 @@ const (
 type StoragePoolDeviceTypeIdentifier struct {
 	// Model of the device
 	Model string `json:"model,omitempty"`
+
 	// PartNumber of the device
 	PartNumber string `json:"partNumber,omitempty"`
 }
@@ -277,13 +279,17 @@ type FilterOptions struct {
 type StoragePoolDataStorageCapabilities struct {
 	// AccessModes to be supported by the pool
 	AccessModes []AccessMode `json:"accessModes,omitempty"`
+
 	// ProvisioningPolicies to be supported by the pool
 	ProvisioningPolicies []StoragePoolProvisioningPolicy `json:"provisioning_policies,omitempty"`
+
 	// Multipathing scenario to be supported by pool viz, OnlineActive, OnlinePassive
 	Multipathing StoragePoolMultipathingOption `json:"multipathing,omitempty"`
+
 	// Compression to be supported or not, if yes the algorithms
 	// +nullable
 	Compression *[]StoragePoolCompressionAlgorithm `json:"compression,omitempty"`
+
 	// Deduplication to be supported or not
 	// +nullable
 	Deduplication *bool `json:"deduplication,omitempty"`
@@ -294,6 +300,7 @@ type StoragePoolDataSecurityCapabilities struct {
 	// MediaEncryption to be supported or not, if yes the algorithms
 	// +nullable
 	MediaEncryption *[]StoragePoolMediaEncryptionAlgorithm `json:"mediaEncryption,omitempty"`
+
 	// DataSanitizationPolicy to be supported, viz Clear, CryptographicErase
 	DataSanitizationPolicy StoragePoolDataSanitizationPolicy `json:"dataSanitizationPolicy,omitempty"`
 }
@@ -308,8 +315,10 @@ type StoragePoolIOConnectivityCapabilities struct {
 type StoragePoolIOPerformanceCapabilities struct {
 	// AverageIOOperationLatencyMicroseconds to be supported by the pool
 	AverageIOOperationLatencyMicroseconds uint64 `json:"averageIoOperationLatencyMicroseconds,omitempty"`
+
 	// MaxIOOperationsPerSecondPerTerabyte to be supported by the pool
 	MaxIOOperationsPerSecondPerTerabyte uint64 `json:"maxIoOperationsPerSecondPerTerabyte,omitempty"`
+
 	// StorageTier to which the pool belongs to, viz Platinum, Gold, Silver
 	StorageTier StoragePoolTier `json:"storageTier,omitempty"`
 }
@@ -319,9 +328,11 @@ type StoragePoolDataProtectionCapabilities struct {
 	// Replication to be supported or not
 	// +nullable
 	Replication *bool `json:"replication,omitempty"`
+
 	// Backup to be supported or not
 	// +nullable
 	Backup *bool `json:"backup,omitempty"`
+
 	// Snapshots to be supported or not
 	// +nullable
 	Snapshots *bool `json:"snapshots,omitempty"`
@@ -333,8 +344,10 @@ type AccessMode string
 const (
 	// ReadWriteOnce can be mounted in read/write mode to exactly 1 host
 	ReadWriteOnce AccessMode = "ReadWriteOnce"
+
 	// ReadOnlyMany can be mounted in read-only mode to many hosts
 	ReadOnlyMany AccessMode = "ReadOnlyMany"
+
 	// ReadWriteMany can be mounted in read/write mode to many hosts
 	ReadWriteMany AccessMode = "ReadWriteMany"
 )
@@ -345,6 +358,7 @@ type StoragePoolProvisioningPolicy string
 const (
 	// ThickProvisioning for thick provisioning
 	ThickProvisioning StoragePoolProvisioningPolicy = "thick"
+
 	// ThinProvisioning for thin provisioning
 	ThinProvisioning StoragePoolProvisioningPolicy = "thin"
 )
@@ -362,7 +376,6 @@ const (
 type StoragePoolCompressionAlgorithm string
 
 const (
-	// TODO: ADD FOR CURRENT USE CASES
 	HuffmanCompression StoragePoolCompressionAlgorithm = "huffman"
 )
 
@@ -370,7 +383,6 @@ const (
 type StoragePoolMediaEncryptionAlgorithm string
 
 const (
-	// TODO: ADD FOR CURRENT USE CASES
 	SHA256 StoragePoolMediaEncryptionAlgorithm = "SHA256"
 )
 
@@ -378,7 +390,6 @@ const (
 type StoragePoolDataSanitizationPolicy string
 
 const (
-	// TODO: ADD FOR CURRENT USE CASES
 	NoneDataSanitizationPolicy               StoragePoolDataSanitizationPolicy = "None"
 	ClearDataSanitizationPolicy              StoragePoolDataSanitizationPolicy = "Clear"
 	CryptographicEraseDataSanitizationPolicy StoragePoolDataSanitizationPolicy = "CryptographicErase"
@@ -388,7 +399,6 @@ const (
 type StoragePoolAccessProtocol string
 
 const (
-	// TODO: ADD FOR CURRENT USE CASES
 	NVMeAccessProtocol           StoragePoolAccessProtocol = "NVMe"
 	NVMeOverFabicsAccessProtocol StoragePoolAccessProtocol = "NVMeOverFabics"
 )
@@ -397,7 +407,6 @@ const (
 type StoragePoolTier string
 
 const (
-	// TODO: ADD FOR CURRENT USE CASES
 	PlatinumTier StoragePoolTier = "P1"
 	GoldTier     StoragePoolTier = "P2"
 	SilverTier   StoragePoolTier = "P3"
