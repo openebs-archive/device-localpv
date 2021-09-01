@@ -39,8 +39,8 @@ type StoragePool struct {
 
 // StoragePoolSpec is the spec for a StoragePool resource
 type StoragePoolSpec struct {
-	// StorageCohortID of the cohort the pool is a part of
-	StorageCohortID string `json:"storageCohortID,omitempty"`
+	// StorageCohortName of the cohort the pool is a part of
+	StorageCohortName string `json:"storageCohortName,omitempty"`
 
 	// Type of the storage pool, viz lvm, spdk blobstor
 	Type StoragePoolType `json:"type,omitempty"`
@@ -130,20 +130,20 @@ type StoragePoolDeviceSpec struct {
 }
 
 type StoragePoolCapabilities struct {
-	// DataStorageCapabilities for the storage pool
-	DataStorageCapabilities StoragePoolDataStorageCapabilities `json:"dataStorageCapabilities,omitempty"`
+	// DataStorage for the storage pool
+	DataStorage StoragePoolDataStorageCapabilities `json:"dataStorage,omitempty"`
 
-	// DataSecurityCapabilities for the storage pool
-	DataSecurityCapabilities StoragePoolDataSecurityCapabilities `json:"dataSecurityCapabilities,omitempty"`
+	// DataSecurity for the storage pool
+	DataSecurity StoragePoolDataSecurityCapabilities `json:"dataSecurity,omitempty"`
 
-	// IOConnectivityCapabilities for the storage pool
-	IOConnectivityCapabilities StoragePoolIOConnectivityCapabilities `json:"ioConnectivityCapabilities,omitempty"`
+	// IOConnectivity for the storage pool
+	IOConnectivity StoragePoolIOConnectivityCapabilities `json:"ioConnectivity,omitempty"`
 
-	// IOPerformanceCapabilities for the storage pool
-	IOPerformanceCapabilities StoragePoolIOPerformanceCapabilities `json:"ioPerformanceCapabilities,omitempty"`
+	// IOPerformance for the storage pool
+	IOPerformance StoragePoolIOPerformanceCapabilities `json:"ioPerformance,omitempty"`
 
-	// DataProtectionCapabilities for the storage pool
-	DataProtectionCapabilities StoragePoolDataProtectionCapabilities `json:"dataProtectionCapabilities,omitempty"`
+	// DataProtection for the storage pool
+	DataProtection StoragePoolDataProtectionCapabilities `json:"dataProtection,omitempty"`
 }
 
 // StoragePoolReferenceResource
@@ -154,29 +154,29 @@ type StoragePoolReferenceResource struct {
 
 // StoragePoolStorageCapacity for the pool,viz total, used and available capacity
 type StoragePoolStorageCapacity struct {
-	// TotalCapacity of the pool
-	TotalCapacity resource.Quantity `json:"totalCapacity,omitempty"`
+	// Total Capacity of the pool
+	Total resource.Quantity `json:"total,omitempty"`
 
-	// UsedCapacity of the pool
-	UsedCapacity resource.Quantity `json:"usedCapacity,omitempty"`
+	// Used Capacity of the pool
+	Used resource.Quantity `json:"used,omitempty"`
 
-	// AvailableCapacity of the pool
-	AvailableCapacity resource.Quantity `json:"availableCapacity,omitempty"`
+	// Available Capacity of the pool
+	Available resource.Quantity `json:"available,omitempty"`
 }
 
 // StoragePoolStorageIOPs for the pool,viz total, provisioned, used and available capacity
 type StoragePoolStorageIOPs struct {
-	// TotalIOPs of the pool
-	TotalIOPs uint64 `json:"totalIops,omitempty"`
+	// Total IOPs of the pool
+	Total uint64 `json:"total,omitempty"`
 
-	// AvailableIOPs of the pool
-	AvailableIOPs uint64 `json:"availableIops,omitempty"`
+	// Available IOPs of the pool
+	Available uint64 `json:"available,omitempty"`
 
-	// ProvisionedIOPs of the pool
-	ProvisionedIOPs uint64 `json:"provisionedIops,omitempty"`
+	// Provisioned IOPs of the pool
+	Provisioned uint64 `json:"provisioned,omitempty"`
 
-	// UsedIOPs of the pool
-	UsedIOPs uint64 `json:"usedIops,omitempty"`
+	// Used IOPs of the pool
+	Used uint64 `json:"used,omitempty"`
 }
 
 type StoragePoolDeviceConfiguration struct {
@@ -375,16 +375,8 @@ const (
 // StoragePoolCompressionAlgorithm supported by the pool
 type StoragePoolCompressionAlgorithm string
 
-const (
-	HuffmanCompression StoragePoolCompressionAlgorithm = "huffman"
-)
-
 // StoragePoolMediaEncryptionAlgorithm supported by the pool
 type StoragePoolMediaEncryptionAlgorithm string
-
-const (
-	SHA256 StoragePoolMediaEncryptionAlgorithm = "SHA256"
-)
 
 // StoragePoolDataSanitizationPolicy supported by the pool
 type StoragePoolDataSanitizationPolicy string
