@@ -17,7 +17,7 @@
 package v1alpha1
 
 import (
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -55,7 +55,7 @@ type StorageVolumeSpec struct {
 
 	// ProtocolConfiguration represents protocol specific configurations for NVME
 	// +nullable
-	ProtocolConfiguration ProtocolConfiguration `json:"ProtocolConfiguration,omitempty"`
+	ProtocolConfiguration ProtocolConfiguration `json:"protocolConfiguration,omitempty"`
 
 	// VolumeType stores configuration that is passed through storage class
 	VolumeType VolumeType `json:"volumeType"`
@@ -68,7 +68,7 @@ type StorageVolumeSpec struct {
 	StorageCohortName string `json:"storageCohortName"`
 
 	// StoragePoolID represents the pool in which volume has to be created
-	StoragePoolName string `json:"StoragePoolName"`
+	StoragePoolName string `json:"storagePoolName"`
 }
 
 // ProtocolConfiguration represents protocol specific configurations for NVME
@@ -86,23 +86,23 @@ type VolumeType struct {
 // Capabilities of the volume
 type Capabilities struct {
 	// DataStorage capabilities
-	DataStorageCapabilities *DataStorageCapabilities `json:"dataStorageCapabilities"`
+	DataStorage *DataStorageCapabilities `json:"dataStorage"`
 
 	// Data security capabilities
-	DataSecurityCapabilities *DataSecurityCapabilities `json:"dataSecurityCapabilities,omitempty"`
+	DataSecurity *DataSecurityCapabilities `json:"dataSecurity,omitempty"`
 
 	// IO connectivity capabilities for the volume
-	IOConnectivityCapabilities *IOConnectivityCapabilities `json:"IOConnectivityCapabilities,omitempty"`
+	IOConnectivity *IOConnectivityCapabilities `json:"IOConnectivity,omitempty"`
 
 	// IO performance capabilities
-	IOPerformanceCapabilities *IOPerformanceCapabilities `json:"IOPerformanceCapabilities,omitempty"`
+	IOPerformance *IOPerformanceCapabilities `json:"IOPerformance,omitempty"`
 
-	MaxIOOperationsPerSecondPerTerabyte string `json:"MaxIOOperationsPerSecondPerTerabyte,omitempty"`
+	MaxIOOperationsPerSecondPerTerabyte string `json:"maxIOOperationsPerSecondPerTerabyte,omitempty"`
 
 	// storage tier to be used for volume creations. eg(Platinum, Gold, Silver)
 	StorageTier StorageTier `json:"storageTier"`
 
-	DataProtectionCapabilities *DataProtectionCapabilities `json:"DataProtectionCapabilities,omitempty"`
+	DataProtection *DataProtectionCapabilities `json:"dataProtection,omitempty"`
 }
 
 type StorageTier string
@@ -127,7 +127,7 @@ type DataStorageCapabilities struct {
 	ProvisioningPolicy ProvisioningPolicy `json:"provisioningPolicy"`
 
 	// RecoveryTimeObjectives to be supported or not
-	RecoveryTimeObjectives RecoveryTimeObjectives `json:"RecoveryTimeObjectives"`
+	RecoveryTimeObjectives RecoveryTimeObjectives `json:"recoveryTimeObjectives"`
 
 	// Compression to be supported or not, if yes the algorithm
 	//	+nullable
@@ -177,7 +177,7 @@ const(
 )
 
 type DataSecurityCapabilities struct {
-	MediaEncryption *bool `json:"MediaEncryption,omitempty"`
+	MediaEncryption *bool `json:"mediaEncryption,omitempty"`
 }
 
 type IOConnectivityCapabilities struct {
@@ -213,7 +213,7 @@ type Affinity struct {
 
 	// TopologySpreadConstraint specifies how to spread matching volumes among the given topology.
 	// +optional
-	TopologySpreadConstraint []v1.TopologySpreadConstraint `json:"topologySpreadConstraint,omitempty"`
+	TopologySpreadConstraint []corev1.TopologySpreadConstraint `json:"topologySpreadConstraint,omitempty"`
 }
 
 type VolumeAffinityTerm struct {
@@ -235,6 +235,10 @@ type StorageVolumeStatus struct {
 	// NVMESpec defines the nvme spec i.e nql, targetIP and status
 	// +nullable
 	NVMESpec []NVMESpec `json:"NVMESpec,omitempty"`
+
+	// Error denotes the error occurred during provisioning a volume.
+	// Error field should only be set when State becomes Failed.
+	Error *StorageVolumeError `json:"error,omitempty"`
 }
 
 // Capacity defines total, used and available size
@@ -248,9 +252,6 @@ type Capacity struct {
 	// Available represents available size of the volume
 	Available resource.Quantity `json:"available,omitempty"`
 
-	// Error denotes the error occurred during provisioning a volume.
-	// Error field should only be set when State becomes Failed.
-	Error *StorageVolumeError `json:"error,omitempty"`
 }
 
 // NVMESpec represents nvme spec for the volume
@@ -278,15 +279,8 @@ const (
 	// has failed
 	StorageVolumePhaseFailed StorageVolumePhase = "Failed"
 
-	// StorageVolumePhaseReady indicates that the StorageVolume provisioning
-	// has Created
-	StorageVolumePhaseReady StorageVolumePhase = "Ready"
-
 	// StorageVolumePhaseDeleting indicates the the StorageVolume is de-provisioned
 	StorageVolumePhaseDeleting StorageVolumePhase = "Deleting"
-
-	// StorageVolumePhaseScheduled indicates the the StorageVolume is scheduled
-	StorageVolumePhaseScheduled StorageVolumePhase = "Scheduled"
 
 	// StorageVolumePhaseHealthy indicates the the StorageVolume is healthy
 	StorageVolumePhaseHealthy StorageVolumePhase = "Healthy"
