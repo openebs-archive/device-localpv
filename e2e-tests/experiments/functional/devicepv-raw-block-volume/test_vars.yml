@@ -1,0 +1,9 @@
+test_name: devicepv-raw-block-volume
+
+app_ns: "{{ lookup('env','APP_NAMESPACE') }}"
+
+storage_class: "{{ lookup('env','STORAGE_CLASS') }}"
+
+pvc_size: "{{ lookup('env','PVC_SIZE') }}"
+
+device_operator_ns: "{{ lookup('env','DEVICE_OPERATOR_NAMESPACE') }}"

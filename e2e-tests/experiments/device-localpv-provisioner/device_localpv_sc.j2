@@ -31,3 +31,13 @@ parameters:
   fsType: "xfs"
   devname: "{{ device_name }}"
 provisioner: device.csi.openebs.io
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: device-sc-raw-block
+allowVolumeExpansion: true
+parameters:
+  devname: "{{ device_name }}"
+provisioner: device.csi.openebs.io
