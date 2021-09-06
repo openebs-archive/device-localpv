@@ -32,7 +32,7 @@ type StoragePool struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	// Spec is the spec for a StoragePool resource
-	Spec StoragePoolSpec `json:"spec"`
+	Spec StoragePoolSpec `json:"spec,omitempty"`
 	// Status is for handling status of StoragePool resource
 	Status StoragePoolStatus `json:"status,omitempty"`
 }
@@ -42,17 +42,14 @@ type StoragePoolSpec struct {
 	// StorageCohortName of the cohort the pool is a part of
 	StorageCohortName string `json:"storageCohortName,omitempty"`
 
-	// Type of the storage pool, viz lvm, spdk blobstor
-	Type StoragePoolType `json:"type,omitempty"`
-
-	// PoolCofiguration based on the above type
-	PoolCofiguration StoragePoolCofiguration `json:"typeSpecificConfiguration,omitempty"`
+	// PoolCofiguration for the configuration related to pool
+	PoolCofiguration map[string]string `json:"poolCofiguration,omitempty"`
 
 	// DeviceSpec for device related filtering, configuration
-	DeviceSpec StoragePoolDeviceSpec `json:"deviceSpec,omitempty"`
+	DeviceSpec DeviceSpec `json:"deviceSpec,omitempty"`
 
 	// Capabilities of the Storage pool and the supported configurations
-	Capabilities StoragePoolCapabilities `json:"capabilities,omitempty"`
+	Capabilities Capabilities `json:"capabilities,omitempty"`
 
 	// RequestedCapacity for the pool creation
 	RequestedCapacity resource.Quantity `json:"requestedCapacity,omitempty"`
@@ -60,17 +57,17 @@ type StoragePoolSpec struct {
 
 // StoragePoolStatus is for handling status of StoragePool resource
 type StoragePoolStatus struct {
-	// ReferenceResource
-	ReferenceResource StoragePoolReferenceResource `json:"referenceResource,omitempty"`
+	// ReferenceResource points to the pre-existing pool resource
+	ReferenceResource ReferenceResource `json:"referenceResource,omitempty"`
 
 	// StorageCapacity of the pool,viz total, used and available capacity
-	StorageCapacity StoragePoolStorageCapacity `json:"storageCapacity,omitempty"`
+	StorageCapacity StorageCapacity `json:"storageCapacity,omitempty"`
 
 	// StorageIOPs of the pool,viz total, provisioned, used and available capacity
-	StorageIOPs StoragePoolStorageIOPs `json:"storageIops,omitempty"`
+	StorageIOPs StorageIOPs `json:"storageIops,omitempty"`
 
 	// DeviceConfiguration for list of Device UIDs and raid configurations currently active
-	DeviceConfiguration StoragePoolDeviceConfiguration `json:"deviceConfiguration,omitempty"`
+	DeviceConfiguration DeviceConfiguration `json:"deviceConfiguration,omitempty"`
 
 	//VolumeSizeMaxLimit for maximum volume size allowed
 	VolumeSizeMaxLimit resource.Quantity `json:"volumeSizeMaxLimit,omitempty"`
@@ -79,81 +76,58 @@ type StoragePoolStatus struct {
 	State StoragePoolState `json:"state,omitempty"`
 }
 
-// StoragePoolType of the storage pool, viz lvm, spdk blobstor
-type StoragePoolType string
-
-const (
-	// LVM2StoragePool for lvm pools
-	LVM2StoragePool StoragePoolType = "lvm2"
-
-	// SpdkBlobstorStoragePool for spdk-blobstor pools
-	SpdkBlobstorStoragePool StoragePoolType = "spdk-blobstor"
-)
-
-// StoragePoolCofiguration for the defined type of the pool
-type StoragePoolCofiguration struct {
-	// LVM pool related configuration
-	// +nullable
-	LVM *LVMPoolConfiguration
-
-	// SpdkBlobStor pool related configuration
-	// +nullable
-	SpdkBlobStor *SpdkBlobStorPoolConfiguration
-}
-
-// LVMPoolConfiguration for LVM pool related configuration
-type LVMPoolConfiguration struct {
-	//TODO: Decide the sub fields
-}
-
-// SpdkBlobStorPoolConfiguration for SpdkBlobStor pool related configuration
-type SpdkBlobStorPoolConfiguration struct {
-	//TODO: Decide the sub fields
-}
-
-// StoragePoolDeviceSpec for the configuration and filtering related specs for devices
-type StoragePoolDeviceSpec struct {
+// DeviceSpec for the configuration and filtering related specs for devices
+type DeviceSpec struct {
 	// MaxDeviceCount for maximum allowed devices
 	MaxDeviceCount uint64 `json:"maxDeviceCount,omitempty"`
 
 	// DeviceTypeIdentifier for the device viz.  ssd-4k, ssd-16k, nvme-64k
-	DeviceTypeIdentifier StoragePoolDeviceTypeIdentifier `json:"deviceTypeIdentifier,omitempty"`
+	// +nullable
+	DeviceTypeIdentifier *DeviceTypeIdentifier `json:"deviceTypeIdentifier,omitempty"`
 
 	// DeviceSelector for labels to match with devices incase they are labeled
-	DeviceSelector map[string]string `json:"deviceSelector,omitempty"`
+	// +nullable
+	DeviceSelector *map[string]string `json:"deviceSelector,omitempty"`
 
 	// DeviceSelector for filtering devices based on FiltersOptions
-	DeviceFilters map[string][]FilterOptions `json:"deviceFilters,omitempty"`
+	// +nullable
+	DeviceFilters *map[string][]FilterOptions `json:"deviceFilters,omitempty"`
 
 	// Devices for the UIDs of the free devices
-	Devices []types.UID `json:"devices,omitempty"`
+	// +nullable
+	Devices *[]types.UID `json:"devices,omitempty"`
 }
 
-type StoragePoolCapabilities struct {
-	// DataStorage for the storage pool
-	DataStorage StoragePoolDataStorageCapabilities `json:"dataStorage,omitempty"`
+type Capabilities struct {
+	// DataStorage capabilities for the storage pool
+	// +nullable
+	DataStorage *DataStorageCapabilities `json:"dataStorage,omitempty"`
 
-	// DataSecurity for the storage pool
-	DataSecurity StoragePoolDataSecurityCapabilities `json:"dataSecurity,omitempty"`
+	// DataSecurity capabilities for the storage pool
+	// +nullable
+	DataSecurity *DataSecurityCapabilities `json:"dataSecurity,omitempty"`
 
-	// IOConnectivity for the storage pool
-	IOConnectivity StoragePoolIOConnectivityCapabilities `json:"ioConnectivity,omitempty"`
+	// IOConnectivity capabilities for the storage pool
+	// +nullable
+	IOConnectivity *IoConnectivityCapabilities `json:"ioConnectivity,omitempty"`
 
-	// IOPerformance for the storage pool
-	IOPerformance StoragePoolIOPerformanceCapabilities `json:"ioPerformance,omitempty"`
+	// IOPerformance capabilities for the storage pool
+	// +nullable
+	IOPerformance *IoPerformanceCapabilities `json:"ioPerformance,omitempty"`
 
-	// DataProtection for the storage pool
-	DataProtection StoragePoolDataProtectionCapabilities `json:"dataProtection,omitempty"`
+	// DataProtection capabilities for the storage pool
+	// +nullable
+	DataProtection *DataProtectionCapabilities `json:"dataProtection,omitempty"`
 }
 
-// StoragePoolReferenceResource
-type StoragePoolReferenceResource struct {
+// ReferenceResource points to the pre-existing pool resource
+type ReferenceResource struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 }
 
-// StoragePoolStorageCapacity for the pool,viz total, used and available capacity
-type StoragePoolStorageCapacity struct {
+// StorageCapacity for the pool,viz total, used and available capacity
+type StorageCapacity struct {
 	// Total Capacity of the pool
 	Total resource.Quantity `json:"total,omitempty"`
 
@@ -164,8 +138,8 @@ type StoragePoolStorageCapacity struct {
 	Available resource.Quantity `json:"available,omitempty"`
 }
 
-// StoragePoolStorageIOPs for the pool,viz total, provisioned, used and available capacity
-type StoragePoolStorageIOPs struct {
+// StorageIOPs for the pool,viz total, provisioned, used and available capacity
+type StorageIOPs struct {
 	// Total IOPs of the pool
 	Total uint64 `json:"total,omitempty"`
 
@@ -179,12 +153,13 @@ type StoragePoolStorageIOPs struct {
 	Used uint64 `json:"used,omitempty"`
 }
 
-type StoragePoolDeviceConfiguration struct {
+type DeviceConfiguration struct {
 	// Devices for the list of UIDs of the devices
 	Devices []types.UID `json:"devices,omitempty"`
 
 	// RaidConfiguration for the raid configurations currently being used
-	RaidConfiguration map[RaidType]int `json:"raidConfiguration,omitempty"`
+	// +nullable
+	RaidConfiguration *map[string]int `json:"raidConfiguration,omitempty"`
 }
 
 // StoragePoolState for the state of the pool for various scenarios
@@ -245,20 +220,8 @@ const (
 	ExclusiveStoragePoolMode StoragePoolMode = "Exclusive"
 )
 
-// RaidType for the pool
-type RaidType string
-
-const (
-	LinearRaidType RaidType = "linear"
-	Raid0RaidType  RaidType = "raid0"
-	Raid1RaidType  RaidType = "raid1"
-	Raid5RaidType  RaidType = "raid5"
-	Raid6RaidType  RaidType = "raid6"
-	Raid10RaidType RaidType = "raid10"
-)
-
-// StoragePoolDeviceTypeIdentifier for the device type constraint
-type StoragePoolDeviceTypeIdentifier struct {
+// DeviceTypeIdentifier for the device type constraint
+type DeviceTypeIdentifier struct {
 	// Model of the device
 	Model string `json:"model,omitempty"`
 
@@ -275,56 +238,59 @@ type FilterOptions struct {
 	Include string `json:"include,omitempty"`
 }
 
-// StoragePoolDataStorageCapabilities for the pool
-type StoragePoolDataStorageCapabilities struct {
+// DataStorageCapabilities for the pool
+type DataStorageCapabilities struct {
 	// AccessModes to be supported by the pool
 	AccessModes []AccessMode `json:"accessModes,omitempty"`
 
 	// ProvisioningPolicies to be supported by the pool
-	ProvisioningPolicies []StoragePoolProvisioningPolicy `json:"provisioning_policies,omitempty"`
+	ProvisioningPolicies []ProvisioningPolicy `json:"provisioningPolicies,omitempty"`
 
 	// Multipathing scenario to be supported by pool viz, OnlineActive, OnlinePassive
 	Multipathing StoragePoolMultipathingOption `json:"multipathing,omitempty"`
 
 	// Compression to be supported or not, if yes the algorithms
 	// +nullable
-	Compression *[]StoragePoolCompressionAlgorithm `json:"compression,omitempty"`
+	Compression *[]CompressionAlgorithm `json:"compression,omitempty"`
 
 	// Deduplication to be supported or not
 	// +nullable
 	Deduplication *bool `json:"deduplication,omitempty"`
 }
 
-// StoragePoolDataSecurityCapabilities for the pool
-type StoragePoolDataSecurityCapabilities struct {
+// DataSecurityCapabilities for the pool
+type DataSecurityCapabilities struct {
 	// MediaEncryption to be supported or not, if yes the algorithms
 	// +nullable
-	MediaEncryption *[]StoragePoolMediaEncryptionAlgorithm `json:"mediaEncryption,omitempty"`
+	MediaEncryption *[]MediaEncryptionAlgorithm `json:"mediaEncryption,omitempty"`
 
 	// DataSanitizationPolicy to be supported, viz Clear, CryptographicErase
-	DataSanitizationPolicy StoragePoolDataSanitizationPolicy `json:"dataSanitizationPolicy,omitempty"`
+	// +nullable
+	DataSanitizationPolicy *DataSanitizationPolicy `json:"dataSanitizationPolicy,omitempty"`
 }
 
-// StoragePoolIOConnectivityCapabilities for the pool
-type StoragePoolIOConnectivityCapabilities struct {
+// IoConnectivityCapabilities for the pool
+type IoConnectivityCapabilities struct {
 	// AccessProtocols to be supported by the pool, viz NVMe, NVMeOverFabrics
-	AccessProtocols []StoragePoolAccessProtocol `json:"accessProtocols,omitempty"`
+	AccessProtocols []AccessProtocol `json:"accessProtocols,omitempty"`
 }
 
-// StoragePoolIOPerformanceCapabilities for the pool
-type StoragePoolIOPerformanceCapabilities struct {
+// IoPerformanceCapabilities for the pool
+type IoPerformanceCapabilities struct {
 	// AverageIOOperationLatencyMicroseconds to be supported by the pool
-	AverageIOOperationLatencyMicroseconds uint64 `json:"averageIoOperationLatencyMicroseconds,omitempty"`
+	// +nullable
+	AverageIOOperationLatencyMicroseconds *uint64 `json:"averageIoOperationLatencyMicroseconds,omitempty"`
 
 	// MaxIOOperationsPerSecondPerTerabyte to be supported by the pool
-	MaxIOOperationsPerSecondPerTerabyte uint64 `json:"maxIoOperationsPerSecondPerTerabyte,omitempty"`
+	// +nullable
+	MaxIOOperationsPerSecondPerTerabyte *uint64 `json:"maxIoOperationsPerSecondPerTerabyte,omitempty"`
 
 	// StorageTier to which the pool belongs to, viz Platinum, Gold, Silver
 	StorageTier StoragePoolTier `json:"storageTier,omitempty"`
 }
 
-// StoragePoolDataProtectionCapabilities for the pool
-type StoragePoolDataProtectionCapabilities struct {
+// DataProtectionCapabilities for the pool
+type DataProtectionCapabilities struct {
 	// Replication to be supported or not
 	// +nullable
 	Replication *bool `json:"replication,omitempty"`
@@ -352,15 +318,15 @@ const (
 	ReadWriteMany AccessMode = "ReadWriteMany"
 )
 
-// StoragePoolProvisioningPolicy for the pool
-type StoragePoolProvisioningPolicy string
+// ProvisioningPolicy for the pool
+type ProvisioningPolicy string
 
 const (
 	// ThickProvisioning for thick provisioning
-	ThickProvisioning StoragePoolProvisioningPolicy = "thick"
+	ThickProvisioning ProvisioningPolicy = "thick"
 
 	// ThinProvisioning for thin provisioning
-	ThinProvisioning StoragePoolProvisioningPolicy = "thin"
+	ThinProvisioning ProvisioningPolicy = "thin"
 )
 
 // StoragePoolMultipathingOption supported by the pool
@@ -372,27 +338,27 @@ const (
 	NoneMultipathingOption          StoragePoolMultipathingOption = "None"
 )
 
-// StoragePoolCompressionAlgorithm supported by the pool
-type StoragePoolCompressionAlgorithm string
+// CompressionAlgorithm supported by the pool
+type CompressionAlgorithm string
 
-// StoragePoolMediaEncryptionAlgorithm supported by the pool
-type StoragePoolMediaEncryptionAlgorithm string
+// MediaEncryptionAlgorithm supported by the pool
+type MediaEncryptionAlgorithm string
 
-// StoragePoolDataSanitizationPolicy supported by the pool
-type StoragePoolDataSanitizationPolicy string
+// DataSanitizationPolicy supported by the pool
+type DataSanitizationPolicy string
 
 const (
-	NoneDataSanitizationPolicy               StoragePoolDataSanitizationPolicy = "None"
-	ClearDataSanitizationPolicy              StoragePoolDataSanitizationPolicy = "Clear"
-	CryptographicEraseDataSanitizationPolicy StoragePoolDataSanitizationPolicy = "CryptographicErase"
+	NoneDataSanitizationPolicy               DataSanitizationPolicy = "None"
+	ClearDataSanitizationPolicy              DataSanitizationPolicy = "Clear"
+	CryptographicEraseDataSanitizationPolicy DataSanitizationPolicy = "CryptographicErase"
 )
 
-// StoragePoolAccessProtocol supported by the pool
-type StoragePoolAccessProtocol string
+// AccessProtocol supported by the pool
+type AccessProtocol string
 
 const (
-	NVMeAccessProtocol           StoragePoolAccessProtocol = "NVMe"
-	NVMeOverFabicsAccessProtocol StoragePoolAccessProtocol = "NVMeOverFabics"
+	NVMeAccessProtocol           AccessProtocol = "NVMe"
+	NVMeOverFabicsAccessProtocol AccessProtocol = "NVMeOverFabics"
 )
 
 // StoragePoolTier for the pool
