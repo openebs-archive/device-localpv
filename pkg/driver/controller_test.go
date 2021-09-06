@@ -31,10 +31,8 @@ func TestRoundOff(t *testing.T) {
 		"Minimum allocatable is 1Mi": {input: 1, expected: Mi},
 		"roundOff to same Mi size":   {input: Mi, expected: Mi},
 		"roundOff to nearest Mi":     {input: Mi + 1, expected: Mi * 2},
-		"roundOff to same Gi size":   {input: Gi, expected: Gi},
-		"roundOff to nearest Gi":     {input: Gi + 1, expected: Gi * 2},
 		"roundOff MB size":           {input: 5 * MB, expected: 5 * Mi},
-		"roundOff GB size":           {input: 5 * GB, expected: 5 * Gi},
+		"roundOff Gi size":           {input: Gi + 512, expected: Gi + Mi},
 	}
 
 	for name, test := range tests {

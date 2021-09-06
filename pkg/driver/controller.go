@@ -97,16 +97,6 @@ var SupportedVolumeCapabilityAccessModes = []*csi.VolumeCapability_AccessMode{
 
 // getRoundedCapacity rounds the capacity on 1024 base
 func getRoundedCapacity(size int64) int64 {
-
-	/*
-	 * volblocksize and recordsize must be power of 2 from 512B to 1M
-	 * so keeping the size in the form of Gi or Mi should be
-	 * sufficient to make volsize multiple of volblocksize/recordsize.
-	 */
-	if size > Gi {
-		return ((size + Gi - 1) / Gi) * Gi
-	}
-
 	// Keeping minimum allocatable size as 1Mi (1024 * 1024)
 	return ((size + Mi - 1) / Mi) * Mi
 }
@@ -569,6 +559,8 @@ func (cs *controller) GetCapacity(
 		}
 	}
 
+	// round off the available capacity to indicate allocatable vol size correctly.
+	availableCapacity = (availableCapacity / Mi) * Mi
 	return &csi.GetCapacityResponse{
 		AvailableCapacity: availableCapacity,
 	}, nil
