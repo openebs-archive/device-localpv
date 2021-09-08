@@ -14,112 +14,142 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
 package v1alpha1
 
-// Capabilities to be supported by the pool or volume
+// Capabilities defines a set of attributes, which describe properties that the
+// storage pool or volume may support.
 type Capabilities struct {
-	// DataStorage capabilities
+	// DataStorage specifies accessModes, provisioning, multiPathing, compression
+	// and deduplication characteristics supported by a pool or a volume.
 	DataStorage *DataStorageCapabilities `json:"dataStorage"`
 
-	// Data security capabilities
-	// +nullable
+	// DataSecurity specifies security standards that is supported.
+	// +optional
 	DataSecurity *DataSecurityCapabilities `json:"dataSecurity,omitempty"`
 
-	// IO connectivity capabilities
-	// +nullable
+	// IOConnectivity describes capabilities to support various IO Connectivity options i.e accessProtocols
+	// +optional
 	IOConnectivity *IOConnectivityCapabilities `json:"IOConnectivity,omitempty"`
 
-	// IO performance capabilities
+	// IOPerformance describe the capabilities to support various IO performance options.
 	IOPerformance *IOPerformanceCapabilities `json:"IOPerformance"`
 
-	// DataProtection capabilities
-	// +nullable
+	// DataProtection describes data protection capabilities.
+	// +optional
 	DataProtection *DataProtectionCapabilities `json:"dataProtection,omitempty"`
 }
 
 // DataStorageCapabilities defines data storage capabilities for a pool or volume
 type DataStorageCapabilities struct {
-	//AccessModes contains the actual access modes
+	//AccessModes contains the actual access modes, viz ReadWriteOnce, ReadOnlyMany, ReadWriteMany
 	AccessModes []AccessMode `json:"accessModes"`
 
-	// ProvisioningPolicy defines provisioning policy type
-	ProvisioningPolicy []string `json:"provisioningPolicy"`
+	// ProvisioningPolicy defines provisioning policy type, viz thick, thin
+	ProvisioningPolicy []ProvisioningPolicy `json:"provisioningPolicy"`
 
 	// MultiPathing to be supported or not.
-	// +nullable
+	// +optional
 	MultiPathing []string `json:"multiPathing,omitempty"`
 
 	// Compression to be supported or not, if yes the algorithm
-	//	+nullable
+	// +optional
 	Compression []string `json:"compression,omitempty"`
 
 	// Deduplication to be supported or not.
-	// +nullable
+	// +optional
 	Deduplication []string `json:"deduplication,omitempty"`
 }
 
-// AccessMode of the pool or volume
+// AccessMode of the pool or volume, viz ReadWriteOnce, ReadOnlyMany and ReadWriteMany
 type AccessMode string
 
 const (
-	// ReadWriteOnce can be mounted in read/write mode to exactly 1 host
-	ReadWriteOnce AccessMode = "ReadWriteOnce"
+	// AccessModeReadWriteOnce can be mounted in read/write mode to exactly 1 host
+	AccessModeReadWriteOnce AccessMode = "ReadWriteOnce"
 
-	// ReadOnlyMany can be mounted in read-only mode to many hosts
-	ReadOnlyMany AccessMode = "ReadOnlyMany"
+	// AccessModeReadOnlyMany can be mounted in read-only mode to many hosts
+	AccessModeReadOnlyMany AccessMode = "ReadOnlyMany"
 
-	// ReadWriteMany can be mounted in read/write mode to many hosts
-	ReadWriteMany AccessMode = "ReadWriteMany"
+	// AccessModeReadWriteMany can be mounted in read/write mode to many hosts
+	AccessModeReadWriteMany AccessMode = "ReadWriteMany"
 )
 
+// ProvisioningPolicy specifies provisioning type, viz thick, thin
+type ProvisioningPolicy string
+
+const (
+	// ProvisioningPolicyThin specifies thin provisioning
+	ProvisioningPolicyThin ProvisioningPolicy = "thin"
+
+	// ProvisioningPolicyThick specifies thick provisioning
+	ProvisioningPolicyThick ProvisioningPolicy = "thick"
+)
 
 // DataSecurityCapabilities defines media encryption algorithms and data sanitization policy.
 type DataSecurityCapabilities struct {
 
 	// MediaEncryption to be supported or not, if yes the algorithms
-	// +nullable
+	// +optional
 	MediaEncryption []string `json:"mediaEncryption,omitempty"`
 
 	// DataSanitizationPolicy to be supported, viz Clear, CryptographicErase
-	// +nullable
-	DataSanitizationPolicy []string `json:"dataSanitizationPolicy,omitempty"`
+	// +optional
+	DataSanitizationPolicy []DataSanitizationPolicy `json:"dataSanitizationPolicy,omitempty"`
 }
+
+// DataSanitizationPolicy specify the data sanitization policy, viz None, Clear, CryptographicErase
+type DataSanitizationPolicy string
+
+const (
+	// DataSanitizationPolicyNone specifies no sanitization policy
+	DataSanitizationPolicyNone DataSanitizationPolicy = "None"
+
+	// DataSanitizationPolicyClear sanitize data in all user-addressable storage
+	// locations for protection against simple non-invasive data recovery techniques.
+	DataSanitizationPolicyClear DataSanitizationPolicy = "Clear"
+
+	// DataSanitizationPolicyCryptographicErase specifies to leverages the encryption of target data by
+	// enabling sanitization of the target data’s encryption key.
+	DataSanitizationPolicyCryptographicErase DataSanitizationPolicy = "CryptographicErase"
+)
 
 // IOConnectivityCapabilities defines access protocols to be supported by the pool or volume
 type IOConnectivityCapabilities struct {
-	// AccessProtocols to be supported, viz NVMe, NVMeOverFabrics
-	// +nullable
-	AccessProtocols []string `json:"accessProtocols,omitempty"`
+	// AccessProtocols to be supported, viz NVMe, NVMeOverFabrics, iSCSI
+	// +optional
+	AccessProtocols []AccessProtocols `json:"accessProtocols,omitempty"`
 }
+
+// AccessProtocols supported, viz NVMe, NVMeOverFabrics, iSCSI
+type AccessProtocols string
+
+const (
+	// AccessProtocolNVMe specifies NVMe protocol
+	AccessProtocolNVMe AccessProtocols = "NVMe"
+
+	// AccessProtocolNVMeOverFabrics specifies NVMeOverFabrics protocol
+	AccessProtocolNVMeOverFabrics AccessProtocols = "NVMeOverFabrics"
+
+	// AccessProtocolISCSI specifies NVMeOverFabrics protocol
+	AccessProtocolISCSI AccessProtocols = "iSCSI"
+)
 
 // IOPerformanceCapabilities defines IO performance capabilities for the pool or volume.
 type IOPerformanceCapabilities struct {
 	// AverageIOOperationLatencyMicroseconds to be supported or not.
-	// +nullable
-	AverageIOOperationLatencyMicroseconds *uint64 `json:"averageIOOperationLatencyMicroseconds,omitempty"`
+	// +optional
+	AverageIOOperationLatencyMicroseconds *int64 `json:"averageIOOperationLatencyMicroseconds,omitempty"`
 
 	// maxIOOperationsPerSecondPerTerabyte to be supported or not.
-	// +nullable
-	maxIOOperationsPerSecondPerTerabyte *uint64 `json:"maxIOOperationsPerSecondPerTerabyte,omitempty"`
+	// +optional
+	MaxIOPSPerTB *int64 `json:"maxIOPSPerTB,omitempty"`
 
-	// storage tier to be used for pool or volume creation. eg(Platinum, Gold, Silver)
-	StorageTier StorageTier `json:"storageTier"`
+	// StorageTier is a classification of the service based on several factors
+	// like performance, redundancy, availability, etc. that can be used for pool or volume creation, viz Platinum, Gold, Silver)
+	StorageTier string `json:"storageTier"`
 }
 
+// DataProtectionCapabilities defines data protection capabilties.
 type DataProtectionCapabilities struct {
 	// TODO: Decide the Fields
 }
-
-type StorageTier string
-
-const (
-	// StorageTierPlatinum indicates that the tier to be used is platinum
-	StorageTierPlatinum StorageTier = "P1"
-
-	// StorageTierGold indicates that the tier to be used is gold
-	StorageTierGold StorageTier = "P2"
-
-	// StorageTierSilver indicates that the tier to be used is silver
-	StorageTierSilver StorageTier = "P3"
-)
