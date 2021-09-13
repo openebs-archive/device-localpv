@@ -44,7 +44,8 @@ type DataStorageCapabilities struct {
 	AccessModes []AccessMode `json:"accessModes"`
 
 	// ProvisioningPolicy defines provisioning policy type, viz thick, thin
-	ProvisioningPolicy []ProvisioningPolicy `json:"provisioningPolicy"`
+	// +optional
+	ProvisioningPolicy []ProvisioningPolicy `json:"provisioningPolicy,omitempty"`
 
 	// MultiPathing to be supported or not.
 	// +optional
