@@ -28,7 +28,7 @@ type Capabilities struct {
 	DataSecurity *DataSecurityCapabilities `json:"dataSecurity,omitempty"`
 
 	// IOConnectivity describes capabilities to support various IO Connectivity options i.e accessProtocols
-	IOConnectivity *IOConnectivityCapabilities `json:"IOConnectivity,omitempty"`
+	IOConnectivity *IOConnectivityCapabilities `json:"IOConnectivity"`
 
 	// IOPerformance describe the capabilities to support various IO performance options.
 	IOPerformance *IOPerformanceCapabilities `json:"IOPerformance"`
@@ -44,10 +44,10 @@ type DataStorageCapabilities struct {
 	AccessModes []AccessMode `json:"accessModes"`
 
 	// ProvisioningPolicy defines provisioning policy type, viz thick, thin
-	// +optional
 	ProvisioningPolicy []ProvisioningPolicy `json:"provisioningPolicy"`
 
 	// MultiPathing to be supported or not.
+	// +optional
 	MultiPathing []MultiPathing `json:"multiPathing,omitempty"`
 
 	// Compression to be supported or not, if yes the algorithm
@@ -56,7 +56,7 @@ type DataStorageCapabilities struct {
 
 	// Deduplication to be supported or not.
 	// +optional
-	Deduplication *bool `json:"deduplication,omitempty"`
+	Deduplication bool `json:"deduplication,omitempty"`
 }
 
 // AccessMode of the pool or volume, viz ReadWriteOnce, ReadOnlyMany and ReadWriteMany
@@ -129,7 +129,7 @@ const (
 // IOConnectivityCapabilities defines access protocols to be supported by the pool or volume
 type IOConnectivityCapabilities struct {
 	// AccessProtocols to be supported, viz NVMe, NVMeOverFabrics, iSCSI
-	AccessProtocols []AccessProtocol `json:"accessProtocols,omitempty"`
+	AccessProtocols []AccessProtocol `json:"accessProtocols"`
 }
 
 // AccessProtocol supported, viz NVMe, NVMeOverFabrics, iSCSI
