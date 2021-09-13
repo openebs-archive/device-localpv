@@ -28,7 +28,6 @@ type Capabilities struct {
 	DataSecurity *DataSecurityCapabilities `json:"dataSecurity,omitempty"`
 
 	// IOConnectivity describes capabilities to support various IO Connectivity options i.e accessProtocols
-	// +optional
 	IOConnectivity *IOConnectivityCapabilities `json:"IOConnectivity,omitempty"`
 
 	// IOPerformance describe the capabilities to support various IO performance options.
@@ -45,11 +44,11 @@ type DataStorageCapabilities struct {
 	AccessModes []AccessMode `json:"accessModes"`
 
 	// ProvisioningPolicy defines provisioning policy type, viz thick, thin
+	// +optional
 	ProvisioningPolicy []ProvisioningPolicy `json:"provisioningPolicy"`
 
 	// MultiPathing to be supported or not.
-	// +optional
-	MultiPathing []string `json:"multiPathing,omitempty"`
+	MultiPathing []MultiPathing `json:"multiPathing,omitempty"`
 
 	// Compression to be supported or not, if yes the algorithm
 	// +optional
@@ -57,7 +56,7 @@ type DataStorageCapabilities struct {
 
 	// Deduplication to be supported or not.
 	// +optional
-	Deduplication []string `json:"deduplication,omitempty"`
+	Deduplication *bool `json:"deduplication,omitempty"`
 }
 
 // AccessMode of the pool or volume, viz ReadWriteOnce, ReadOnlyMany and ReadWriteMany
@@ -83,6 +82,20 @@ const (
 
 	// ProvisioningPolicyThick specifies thick provisioning
 	ProvisioningPolicyThick ProvisioningPolicy = "thick"
+)
+
+// MultiPathing specifies fault toleration type, viz None, OnlineActive, OnlinePassive
+type MultiPathing string
+
+const(
+	// MultiPathingNone specifies fault toleration type to be None
+	MultiPathingNone MultiPathing="None"
+
+	// MultiPathingOnlineActive specifies fault toleration type to be OnlineActive
+	MultiPathingOnlineActive MultiPathing="OnlineActive"
+
+	// MultiPathingOnlinePassive specifies fault toleration type to be OnlinePassive
+	MultiPathingOnlinePassive MultiPathing="OnlinePassive"
 )
 
 // DataSecurityCapabilities defines media encryption algorithms and data sanitization policy.
@@ -116,33 +129,32 @@ const (
 // IOConnectivityCapabilities defines access protocols to be supported by the pool or volume
 type IOConnectivityCapabilities struct {
 	// AccessProtocols to be supported, viz NVMe, NVMeOverFabrics, iSCSI
-	// +optional
-	AccessProtocols []AccessProtocols `json:"accessProtocols,omitempty"`
+	AccessProtocols []AccessProtocol `json:"accessProtocols,omitempty"`
 }
 
-// AccessProtocols supported, viz NVMe, NVMeOverFabrics, iSCSI
-type AccessProtocols string
+// AccessProtocol supported, viz NVMe, NVMeOverFabrics, iSCSI
+type AccessProtocol string
 
 const (
 	// AccessProtocolNVMe specifies NVMe protocol
-	AccessProtocolNVMe AccessProtocols = "NVMe"
+	AccessProtocolNVMe AccessProtocol = "NVMe"
 
 	// AccessProtocolNVMeOverFabrics specifies NVMeOverFabrics protocol
-	AccessProtocolNVMeOverFabrics AccessProtocols = "NVMeOverFabrics"
+	AccessProtocolNVMeOverFabrics AccessProtocol = "NVMeOverFabrics"
 
 	// AccessProtocolISCSI specifies NVMeOverFabrics protocol
-	AccessProtocolISCSI AccessProtocols = "iSCSI"
+	AccessProtocolISCSI AccessProtocol = "iSCSI"
 )
 
 // IOPerformanceCapabilities defines IO performance capabilities for the pool or volume.
 type IOPerformanceCapabilities struct {
 	// AverageIOOperationLatencyMicroseconds to be supported or not.
 	// +optional
-	AverageIOOperationLatencyMicroseconds *int64 `json:"averageIOOperationLatencyMicroseconds,omitempty"`
+	AverageIOOperationLatencyMicroseconds *uint64 `json:"averageIOOperationLatencyMicroseconds,omitempty"`
 
 	// maxIOOperationsPerSecondPerTerabyte to be supported or not.
 	// +optional
-	MaxIOPSPerTB *int64 `json:"maxIOPSPerTB,omitempty"`
+	MaxIOPSPerTB *uint64 `json:"maxIOPSPerTB,omitempty"`
 
 	// StorageTier is a classification of the service based on several factors
 	// like performance, redundancy, availability, etc. that can be used for pool or volume creation, viz Platinum, Gold, Silver)
