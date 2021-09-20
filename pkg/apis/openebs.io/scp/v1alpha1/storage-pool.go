@@ -62,6 +62,7 @@ type StoragePoolSpec struct {
 
 	// Configuration points to the configuration, a custom resource, map of parameters or configmap
 	// that can be used to specify the pool and its device related configuration.
+	// +required
 	Configuration interface{} `json:"configuration"`
 
 	// Capabilities to be supported by the StoragePool
@@ -83,7 +84,7 @@ type StoragePoolStatus struct {
 	// +optional
 	StorageCapacity StorageCapacity `json:"storageCapacity,omitempty"`
 
-	// StorageIOPs of the pool,viz total, provisioned, used and available capacity
+	// StorageIOPs of the pool,viz total, provisioned, used and available IOPs
 	// +optional
 	StorageIOPs StorageIOPs `json:"storageIops,omitempty"`
 
