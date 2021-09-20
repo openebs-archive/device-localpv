@@ -17,7 +17,7 @@
 package v1alpha1
 
 import (
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -52,9 +52,9 @@ type StoragePool struct {
 
 // StoragePoolSpec is the spec for a StoragePool resource
 type StoragePoolSpec struct {
-	// StorageCohort points to the StorageCohort resource, the pool is to be created upon
+	// StorageCohortReference points to the StorageCohort resource, the pool is to be created upon
 	// +required
-	StorageCohort v1.ObjectReference `json:"storageCohort"`
+	StorageCohortReference corev1.ObjectReference `json:"storageCohortReference"`
 
 	// Type refers to the type of pool we are expecting to be created by the provisioner
 	// +required
@@ -78,15 +78,15 @@ type StoragePoolSpec struct {
 type StoragePoolStatus struct {
 	// ReferenceResource points to the pre-existing pool resource or the created pool resource after creation of pool.
 	// +optional
-	ReferenceResource v1.ObjectReference `json:"referenceResource,omitempty"`
+	ReferenceResource corev1.ObjectReference `json:"referenceResource,omitempty"`
 
-	// StorageCapacity of the pool,viz total, used and available capacity
+	// Capacity of the pool,viz total, used and available capacity
 	// +optional
-	StorageCapacity StorageCapacity `json:"storageCapacity,omitempty"`
+	Capacity StorageCapacity `json:"capacity,omitempty"`
 
-	// StorageIOPs of the pool,viz total, provisioned, used and available IOPs
+	// IOPs of the pool,viz total, provisioned, used and available IOPs
 	// +optional
-	StorageIOPs StorageIOPs `json:"storageIops,omitempty"`
+	IOPs StorageIOPs `json:"IOPs,omitempty"`
 
 	// VolumeSizeMaxLimit for maximum volume size allowed
 	// +optional
@@ -143,7 +143,7 @@ type StoragePoolCondition struct {
 
 	// Status of the condition, one of True, False, Unknown.
 	// +required
-	Status v1.ConditionStatus `json:"status"`
+	Status corev1.ConditionStatus `json:"status"`
 
 	// The last time this condition was updated.
 	// +optional
