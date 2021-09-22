@@ -17,7 +17,14 @@
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+const (
+	// StoragePoolProtectionFinalizer makes sure that no pool is present
+	// at the time of storage cohort CR deletion
+	StoragePoolProtectionFinalizer = "openebs.io/pool-protection"
 )
 
 // +genclient
@@ -48,10 +55,10 @@ type StorageCohortSpec struct {
 	// +optional
 	NodeSelector *metav1.LabelSelector `json:"nodeSelector,omitempty"`
 
-	// CohortManager stores the details of the cohort manager responsible for
+	// CohortManager stores all the details about the cohort manager responsible for
 	// managing the cohort
 	// +optional
-	CohortManager CohortManagerDetails `json:"cohortManager,omitempty"`
+	CohortManager interface{} `json:"cohortManager,omitempty"`
 
 	// StorageProvisioner contains list of all provisioners responsible for
 	// the provisioning tasks for different storage solutions in the cohort
@@ -75,21 +82,6 @@ type StorageProvisionerDetails struct {
 	Provisioner string `json:"provisioner,omitempty"`
 }
 
-// CohortManagerDetails is information about the cohort manager managing
-// the cohort.
-type CohortManagerDetails struct {
-	// ApiUrl is the cohort manager endpoint used for communicating with the cohort
-	// +optional
-	ApiUrl []string `json:"apiUrl,omitempty"`
-
-	// HealthCheckUrl describes a health check endpoint of cohort manager against which
-	// an api call is to be performed to determine whether it is alive or ready to receive traffic.
-	// +optional
-	HealthCheckUrl string `json:"healthCheckUrl,omitempty"`
-
-	// TODO add authentication & security spec
-}
-
 // StorageCohortStatus is information about the current status of a storage cohort.
 type StorageCohortStatus struct {
 	// Conditions is an array of current observed cohort component's conditions.
@@ -103,13 +95,13 @@ type StorageCohortStatus struct {
 
 // ComponentCondition contains condition information for a storage cohort.
 type ComponentCondition struct {
-	// Name of the component
+	// Name of the component. This must be a DNS_LABEL.
 	// For example: "cohort-manager"
 	Name string `json:"name"`
 	// Type of component condition.
 	Type ComponentConditionType `json:"type"`
 	// Status of the condition, one of True, False, Unknown.
-	Status ComponentConditionStatus `json:"status"`
+	Status corev1.ConditionStatus `json:"status"`
 	// Last time we got an update on a given condition.
 	LastHeartbeatTime metav1.Time `json:"lastHeartbeatTime,omitempty"`
 	// Last time the condition transit from one status to another.
@@ -131,17 +123,6 @@ const (
 	// CohortComponentSchedulable means the cohort component is healthy and schedulable.
 	CohortComponentSchedulable ComponentConditionType = "Schedulable"
 	// TODO add more types if necessary
-)
-
-type ComponentConditionStatus string
-
-// These are valid condition statuses. "ConditionTrue" means a component is in the condition.
-// "ConditionFalse" means a component is not in the condition. "ConditionUnknown" means
-// cohort-operator/cohort-manager can't decide if a cohort component is in the condition or not.
-const (
-	ConditionTrue    ComponentConditionStatus = "True"
-	ConditionFalse   ComponentConditionStatus = "False"
-	ConditionUnknown ComponentConditionStatus = "Unknown"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
