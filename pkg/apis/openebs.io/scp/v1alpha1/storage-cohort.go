@@ -62,24 +62,9 @@ type StorageCohortSpec struct {
 
 	// StorageProvisioner contains list of all provisioners responsible for
 	// the provisioning tasks for different storage solutions in the cohort
-	// +optional
-	StorageProvisioner []StorageProvisionerDetails `json:"storageProvisioner,omitempty"`
-}
-
-// StorageCohortStorageProvisionerDetails stores the different storage provisioners information
-// which takes the job pf provisioning pools and volumes
-type StorageProvisionerDetails struct {
-	// StorageType represents the type of storage solution which the provisioner is responsible for
-	// implementing
-	// For example: lvm or device-localpv
-	// +optional
-	StorageType string `json:"storageType,omitempty"`
-
-	// provisioner is the driver expected to handle this cohort.
-	// This is an optionally-prefixed name, like a label key.
 	// For example: "openebs.io/scp-lvm-provisioner" or "openebs.io/scp-device-provisioner".
 	// +optional
-	Provisioner string `json:"provisioner,omitempty"`
+	StorageProvisioner []string `json:"storageProvisioner,omitempty"`
 }
 
 // StorageCohortStatus is information about the current status of a storage cohort.
