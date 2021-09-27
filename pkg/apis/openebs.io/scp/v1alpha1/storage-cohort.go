@@ -46,13 +46,13 @@ type StorageCohort struct {
 // StorageCohortSpec describes the attributes that a cohort is created with.
 type StorageCohortSpec struct {
 	// NodeSelector is used to specify the cohort to be considered
-	// +required
-	NodeSelector *metav1.LabelSelector `json:"nodeSelector"`
+	// +optional
+	NodeSelector *metav1.LabelSelector `json:"nodeSelector,omitempty"`
 
 	// CohortManager stores all the details about the cohort manager responsible for
 	// managing the cohort
-	// +required
-	CohortManager interface{} `json:"cohortManager"`
+	// +optional
+	CohortManager interface{} `json:"cohortManager,omitempty"`
 
 	// StorageProvisioner contains list of all provisioners responsible for
 	// the provisioning tasks for different storage solutions in the cohort
