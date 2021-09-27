@@ -22,16 +22,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const (
-	// StoragePoolVolumeProtectionFinalizer makes sure that no volume is present in the pool at the time of storage
-	// pool CR deletion.
-	StoragePoolVolumeProtectionFinalizer = "openebs.io/volume-protection"
-
-	// StoragePoolSourceProtectionFinalizer makes sure that internal pool resource is not present at the time of
-	// storage pool CR deletion.
-	StoragePoolSourceProtectionFinalizer = "openebs.io/pool-source-protection"
-)
-
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +resource:path=storagepool
