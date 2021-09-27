@@ -56,9 +56,10 @@ type StoragePoolSpec struct {
 	// +required
 	StorageCohortReference corev1.ObjectReference `json:"storageCohortReference"`
 
-	// Type refers to the type of pool we are expecting to be created by the provisioner
+	// Provisioner refers to the pool provisioner which will be responsible for creating
+	// and managing the pool
 	// +required
-	Type string `json:"type"`
+	Provisioner string `json:"Provisioner"`
 
 	// Configuration points to the configuration, a custom resource, map of parameters or configmap
 	// that can be used to specify the pool and its device related configuration.
@@ -180,7 +181,11 @@ const (
 
 	// StoragePoolConditionTypelPoolLost condition will be available when the underlying specific pool
 	// is not in usable.
-	StoragePoolConditionTypelPoolLost StoragePoolConditionType = "PoolLost"
+	StoragePoolConditionTypelPoolLost StoragePoolConditionType = "PoolOffline"
+
+	// StoragePoolConditionTypePoolHealthy condition will be available when the underlying specific pool
+	// is usable.
+	StoragePoolConditionTypePoolHealthy StoragePoolConditionType = "PoolHealthy"
 )
 
 // StoragePoolList is a list of StoragePool resources
