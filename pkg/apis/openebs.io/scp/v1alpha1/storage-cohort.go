@@ -21,12 +21,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const (
-	// StoragePoolProtectionFinalizer makes sure that no pool is present
-	// at the time of storage cohort CR deletion
-	StoragePoolProtectionFinalizer = "openebs.io/pool-protection"
-)
-
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +resource:path=storagecohort
@@ -40,8 +34,8 @@ type StorageCohort struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	// Spec defines the behavior of a cohort.
-	// +optional
-	Spec StorageCohortSpec `json:"spec,omitempty"`
+	// +required
+	Spec StorageCohortSpec `json:"spec"`
 
 	// Most recently observed status of the cohort.
 	// Populated by the cohort operator or cohort manager.
@@ -52,13 +46,13 @@ type StorageCohort struct {
 // StorageCohortSpec describes the attributes that a cohort is created with.
 type StorageCohortSpec struct {
 	// NodeSelector is used to specify the cohort to be considered
-	// +optional
-	NodeSelector *metav1.LabelSelector `json:"nodeSelector,omitempty"`
+	// +required
+	NodeSelector *metav1.LabelSelector `json:"nodeSelector"`
 
 	// CohortManager stores all the details about the cohort manager responsible for
 	// managing the cohort
-	// +optional
-	CohortManager interface{} `json:"cohortManager,omitempty"`
+	// +required
+	CohortManager interface{} `json:"cohortManager"`
 
 	// StorageProvisioner contains list of all provisioners responsible for
 	// the provisioning tasks for different storage solutions in the cohort
