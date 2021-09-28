@@ -22,12 +22,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const (
-	// StorageVolumeProtectionFinalizer makes sure to clean up external resources before
-	// deletion of storage volume
-	StorageVolumeProtectionFinalizer = "openebs.io/volume-source-protection"
-)
-
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +resource:path=storagevolume
@@ -117,13 +111,13 @@ type StorageVolumeStatus struct {
 	// Phase defines the state of the volume
 	Condition []StorageVolumeCondition `json:"condition,omitempty"`
 
-	// Capacity stores total, used and available size
+	// VolumeCapacity stores total, used and available size
 	// +optional
-	Capacity Capacity `json:"capacity,omitempty"`
+	VolumeCapacity VolumeCapacity `json:"volumeCapacity,omitempty"`
 
-	// TargetInfo defines the nvme spec i.e nql, targetIP and status
+	// TargetInfo defines the target information i.e nqn, targetIP and status
 	// +optional
-	TargetInfo []TargetInfo `json:"targetInfo,omitempty"`
+	TargetInfo interface{} `json:"targetInfo,omitempty"`
 }
 
 // StorageVolumeCondition contains condition information for a StorageVolume.
@@ -166,8 +160,8 @@ const (
 	StorageVolumeConditionTypeReady StorageVolumeConditionType = "Ready"
 )
 
-// Capacity defines total, used and available size
-type Capacity struct {
+// VolumeCapacity defines total, used and available size
+type VolumeCapacity struct {
 	// Total represents total size of volume
 	// +optional
 	Total resource.Quantity `json:"total,omitempty"`
@@ -179,20 +173,4 @@ type Capacity struct {
 	// Available represents available size of the volume
 	// +optional
 	Available resource.Quantity `json:"available,omitempty"`
-}
-
-// TargetInfo represents nvme spec for the volume
-type TargetInfo struct {
-
-	// Nqn represents target nvme Qualified Name.combination of nodeBase
-	// +optional
-	Nqn string `json:"nqn,omitempty"`
-
-	// TargetIP IP of the NVME target
-	// +optional
-	TargetIP string `json:"targetIP,omitempty"`
-
-	// Status of the nvme target
-	// +optional
-	Status string `json:"status,omitempty"`
 }
