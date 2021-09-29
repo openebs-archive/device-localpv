@@ -48,8 +48,8 @@ type StoragePoolSpec struct {
 
 	// Provisioner refers to the pool provisioner which will be responsible for creating
 	// and managing the pool
-	// +required
-	Provisioner string `json:"Provisioner"`
+	// +optional
+	Provisioner string `json:"Provisioner,omitempty"`
 
 	// Configuration points to the configuration, a custom resource, map of parameters or configmap
 	// that can be used to specify the pool and its device related configuration.
@@ -129,11 +129,11 @@ type StorageIOPs struct {
 // StoragePoolCondition describes the condition of a StoragePool at a certain point based on a specific type
 type StoragePoolCondition struct {
 	// Type of StoragePool condition.
-	// +required
+	// +optional
 	Type StoragePoolConditionType `json:"type"`
 
 	// Status of the condition, one of True, False, Unknown.
-	// +required
+	// +optional
 	Status corev1.ConditionStatus `json:"status"`
 
 	// The last time this condition was updated.
