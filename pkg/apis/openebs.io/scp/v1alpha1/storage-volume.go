@@ -68,42 +68,9 @@ type StorageVolumeSpec struct {
 
 	// StoragePoolReference points to the pre-existing StoragePool resource
 	StoragePoolReference v1.ObjectReference `json:"storagePoolReference"`
-}
 
-// Affinity is a group of affinity scheduling rules
-type Affinity struct {
-
-	// Describes volume affinity scheduling rules
-	// +optional
-	VolumeAffinity []VolumeAffinityTerm `json:"volumeAffinity,omitempty"`
-
-	// Describes volume anti-affinity scheduling rules
-	// +optional
-	VolumeAntiAffinity []VolumeAffinityTerm `json:"volumeAntiAffinity,omitempty"`
-
-	// Describes cohort affinity scheduling rules
-	// +optional
-	CohortAffinity []metav1.LabelSelector `json:"cohortAffinity,omitempty"`
-
-	// Describes cohort anti-affinity scheduling rules
-	// +optional
-	CohortAntiAffinity []metav1.LabelSelector `json:"cohortAntiAffinity,omitempty"`
-
-	// TopologySpreadConstraint specifies how to spread matching volumes among the given topology.
-	// +optional
-	TopologySpreadConstraint []v1.TopologySpreadConstraint `json:"topologySpreadConstraint,omitempty"`
-}
-
-// VolumeAffinityTerm specifies affinity requirements for a StorageVolume
-type VolumeAffinityTerm struct {
-	// TopologyKey is the key of cohort labels. StorageCohort that have a label with this key
-	// and identical values are considered to be in the same topology.
-	// +optional
-	TopologyKey string `json:"topologyKey,omitempty"`
-
-	// A label query over a set of resources, in this case storage volume.
-	// +optional
-	LabelSelector *metav1.LabelSelector `json:"labelSelector,omitempty"`
+	// StorageProvisioner specifies the provisioner name that is responsible for volume provisioning tasks.
+	StorageProvisioner string `json:"storageProvisioner"`
 }
 
 // StorageVolumeStatus defines the observed state of StorageVolume
@@ -111,9 +78,9 @@ type StorageVolumeStatus struct {
 	// Phase defines the state of the volume
 	Condition []StorageVolumeCondition `json:"condition,omitempty"`
 
-	// VolumeCapacity stores total, used and available size
+	// Capacity stores total, used and available size
 	// +optional
-	VolumeCapacity VolumeCapacity `json:"volumeCapacity,omitempty"`
+	Capacity VolumeCapacity `json:"capacity,omitempty"`
 
 	// TargetInfo defines the target information i.e nqn, targetIP and status
 	// +optional
