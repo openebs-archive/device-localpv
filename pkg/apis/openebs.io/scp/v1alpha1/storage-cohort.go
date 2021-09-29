@@ -54,31 +54,72 @@ type StorageCohortSpec struct {
 	// +optional
 	CohortManager interface{} `json:"cohortManager,omitempty"`
 
-	// StorageProvisioner contains list of all provisioners responsible for
-	// the provisioning tasks for different storage solutions in the cohort
+	// DefaultStorageProvisioner is the default provisioner for the cohort which can be used
+	// used for provisioning pools or volumes when no provisioner is specified in the storage pool
 	// For example: "openebs.io/scp-lvm-provisioner" or "openebs.io/scp-device-provisioner".
 	// +optional
-	StorageProvisioner []string `json:"storageProvisioner,omitempty"`
+	DefaultStorageProvisioner string `json:"defaultStorageProvisioner,omitempty"`
 }
 
-// StorageCohortStatus is information about the current status of a storage cohort.
+// StorageCohortStatus stores information about the current status of a storage cohort.
 type StorageCohortStatus struct {
-	// Conditions is an array of current observed cohort component's conditions.
+	// Components is an array of different component's conditions which the cohort is comprised of.
 	// +optional
-	Conditions []ComponentCondition `json:"conditions,omitempty"`
+	Components []ComponentStatus `json:"components,omitempty"`
 
 	// Capabilities represent capabilities that a cohort consists of
 	// +optional
 	Capabilities Capabilities `json:"capabilities,omitempty"`
 }
 
-// ComponentCondition contains condition information for a storage cohort.
-type ComponentCondition struct {
-	// Name of the component. This must be a DNS_LABEL.
-	// For example: "cohort-manager"
+// ComponentStatus stores information about the current status of storage cohort's components.
+type ComponentStatus struct {
+	// CohortCondition is an array of current observed cohort conditions.
+	// +optional
+	CohortCondition []CohortCondition `json:"cohortCondition,omitempty"`
+
+	// CohortManagerCondition is an array of current observed cohort manager conditions.
+	// +optional
+	CohortManagerCondition []ComponentCondition `json:"cohortManagerCondition,omitempty"`
+
+	// NodeCondition is an array of current observed cohort's individual nodes conditions.
+	// +optional
+	NodeCondition []CohortNodeCondition `json:"nodeCondition,omitempty"`
+}
+
+// CohortNodeCondition contains the latest status information for some or all the
+// nodes that the cohort is comprised of.
+type CohortNodeCondition struct {
+	// Name of the node. This must be a DNS_LABEL.
+	// For example: "virtual-node-1"
+	// +optional
 	Name string `json:"name"`
+
+	// Condition is an array of current observed node conditions.
+	// +optional
+	Condition []ComponentCondition `json:"condition,omitempty"`
+}
+
+// CohortCondition contains condition information for a storage cohort.
+type CohortCondition struct {
 	// Type of component condition.
 	Type ComponentConditionType `json:"type"`
+	// Status of the condition, one of True, False, Unknown.
+	Status corev1.ConditionStatus `json:"status"`
+	// Last time we got an update on a given condition.
+	LastHeartbeatTime metav1.Time `json:"lastHeartbeatTime,omitempty"`
+	// Last time the condition transit from one status to another.
+	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
+	// (brief) reason for the condition's last transition.
+	Reason string `json:"reason,omitempty"`
+	// Human readable message indicating details about last transition.
+	Message string `json:"message,omitempty"`
+}
+
+// ComponentCondition contains condition information for a cohort's individual component.
+type ComponentCondition struct {
+	// Type of component condition.
+	Type string `json:"type"`
 	// Status of the condition, one of True, False, Unknown.
 	Status corev1.ConditionStatus `json:"status"`
 	// Last time we got an update on a given condition.
