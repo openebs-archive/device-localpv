@@ -46,10 +46,10 @@ type StoragePoolSpec struct {
 	// +required
 	StorageCohortReference corev1.ObjectReference `json:"storageCohortReference"`
 
-	// Provisioner refers to the pool provisioner which will be responsible for creating
+	// StorageProvisioner refers to the pool provisioner which will be responsible for creating
 	// and managing the pool
 	// +optional
-	Provisioner string `json:"Provisioner,omitempty"`
+	StorageProvisioner string `json:"storageProvisioner,omitempty"`
 
 	// Configuration points to the configuration, a custom resource, map of parameters or configmap
 	// that can be used to specify the pool and its device related configuration.
