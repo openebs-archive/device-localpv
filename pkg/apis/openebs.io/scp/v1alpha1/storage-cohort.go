@@ -55,7 +55,7 @@ type StorageCohortSpec struct {
 	CohortManager interface{} `json:"cohortManager,omitempty"`
 
 	// DefaultStorageProvisioner is the default provisioner for the cohort which can be used
-	// used for provisioning pools or volumes when no provisioner is specified in the storage pool
+	// for provisioning pools or volumes when no provisioner is specified in the storage pool
 	// For example: "openebs.io/scp-lvm-provisioner" or "openebs.io/scp-device-provisioner".
 	// +optional
 	DefaultStorageProvisioner string `json:"defaultStorageProvisioner,omitempty"`
@@ -73,8 +73,14 @@ type StorageCohortStatus struct {
 }
 
 // ComponentStatus stores information about the current status of storage cohort's components.
+// Note: For scheduling purpose, the scheduler will only br concerned with the CohortCondition
+// to make scheduling decisions. Other components status can be used for monitoring purposes
+// or troubleshooting purpose.
 type ComponentStatus struct {
 	// CohortCondition is an array of current observed cohort conditions.
+	// The Cohort is deemed to be fully functional when its Ready and Schedulable
+	// condition types are `true`. All other types status declares a cohort
+	// to be non-functional.
 	// +optional
 	CohortCondition []CohortCondition `json:"cohortCondition,omitempty"`
 
@@ -103,7 +109,7 @@ type CohortNodeCondition struct {
 // CohortCondition contains condition information for a storage cohort.
 type CohortCondition struct {
 	// Type of component condition.
-	Type ComponentConditionType `json:"type"`
+	Type CohortConditionType `json:"type"`
 	// Status of the condition, one of True, False, Unknown.
 	Status corev1.ConditionStatus `json:"status"`
 	// Last time we got an update on a given condition.
@@ -132,16 +138,16 @@ type ComponentCondition struct {
 	Message string `json:"message,omitempty"`
 }
 
-type ComponentConditionType string
+type CohortConditionType string
 
 // These are valid conditions of cohort.
 // In the future, we can add more. The current set of conditions are:
-// CohortComponentReady, CohortComponentSchedulable.
+// CohortConditionTypeReady, CohortConditionTypeSchedulable.
 const (
-	// CohortComponentReady means cohort component is healthy and ready to perform its task.
-	CohortComponentReady ComponentConditionType = "Ready"
-	// CohortComponentSchedulable means the cohort component is healthy and schedulable.
-	CohortComponentSchedulable ComponentConditionType = "Schedulable"
+	// CohortConditionTypeReady means cohort is healthy and ready to perform its task.
+	CohortConditionTypeReady CohortConditionType = "Ready"
+	// CohortConditionTypeSchedulable means the cohort is healthy and schedulable.
+	CohortConditionTypeSchedulable CohortConditionType = "Schedulable"
 	// TODO add more types if necessary
 )
 
