@@ -1,32 +1,48 @@
 package v1alpha1
 
 import (
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // Affinity is a group of affinity scheduling rules
 type Affinity struct {
 
-	// Describes volume affinity scheduling rules
+	// VolumeAffinity helps to place a volume in the same topology(storage cohort)
+	// where old volumes are present, if old volume not found the it can go to any cohort.
+	// Old volumes are identified using LabelSelector. Using this we can ensure that if any
+	// pod is requesting for 2 volumes then 2 volumes will be scheduled in the same storage
+	// cohort topology. ie - if app-0 replica of sts app is requesting for 2 volumes data-0
+	// and log-0, both the volumes will be scheduled in the same storage cohort topology.
+	// All volumeAffinity requirements are ANDed together.
 	// +optional
 	VolumeAffinity []VolumeAffinityTerm `json:"volumeAffinity,omitempty"`
 
-	// Describes volume anti-affinity scheduling rules
+	// VolumeAntiAffinity helps to place a volume in the different topology(storage cohort)
+	// where old volumes are present, if old volume not found the it can go to any cohort.
+	// Old volumes are identified using LabelSelector. Using this we can ensure that replicas
+	// of an application will have volume in different storage cohort topology . ie - if app-0
+	// and app-1 replica of sts app is requesting for 2 volumes data-0 and data-1,
+	// both the volumes will be scheduled in the different storage cohort topology.
+	// All volumeAntiAffinity requirements are ANDed together.
 	// +optional
 	VolumeAntiAffinity []VolumeAffinityTerm `json:"volumeAntiAffinity,omitempty"`
 
-	// Describes cohort affinity scheduling rules
+	// Using CohortAffinity we can schedule a volume in a group of storage cohort.
+	// All cohortAffinity requirements are ANDed together.
 	// +optional
 	CohortAffinity []metav1.LabelSelector `json:"cohortAffinity,omitempty"`
 
-	// Describes cohort anti-affinity scheduling rules
+	// Using CohortAffinity we can avoid scheduling a volume in a group of storage cohort.
+	// All cohortAntiAffinity requirements are ANDed together.
 	// +optional
 	CohortAntiAffinity []metav1.LabelSelector `json:"cohortAntiAffinity,omitempty"`
 
-	// TopologySpreadConstraint specifies how to spread matching volumes among the given topology.
+	// TopologySpreadConstraints describes how a group of volumes ought to spread
+	// across storage cohort topology. Scheduler will schedule volumes in a way which
+	// abides by the constraints. All TopologySpreadConstraints are ANDed.
 	// +optional
-	TopologySpreadConstraint []v1.TopologySpreadConstraint `json:"topologySpreadConstraint,omitempty"`
+	TopologySpreadConstraint []corev1.TopologySpreadConstraint `json:"topologySpreadConstraint,omitempty"`
 }
 
 // VolumeAffinityTerm specifies affinity requirements for a StorageVolume

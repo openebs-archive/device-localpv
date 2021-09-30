@@ -64,13 +64,16 @@ type StorageVolumeSpec struct {
 	Affinity Affinity `json:"affinity,omitempty"`
 
 	// StorageCohortReference points to the pre-existing StorageCohort resource
-	StorageCohortReference v1.ObjectReference `json:"storageCohortReference"`
+	// +optional
+	StorageCohortReference v1.ObjectReference `json:"storageCohortReference,omitempty"`
 
 	// StoragePoolReference points to the pre-existing StoragePool resource
-	StoragePoolReference v1.ObjectReference `json:"storagePoolReference"`
+	// +optional
+	StoragePoolReference v1.ObjectReference `json:"storagePoolReference,omitempty"`
 
 	// StorageProvisioner specifies the provisioner name that is responsible for volume provisioning tasks.
-	StorageProvisioner string `json:"storageProvisioner"`
+	// +optional
+	StorageProvisioner string `json:"storageProvisioner,omitempty"`
 }
 
 // StorageVolumeStatus defines the observed state of StorageVolume
