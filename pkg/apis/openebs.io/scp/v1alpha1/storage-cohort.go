@@ -17,7 +17,6 @@
 package v1alpha1
 
 import (
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -46,13 +45,13 @@ type StorageCohort struct {
 // StorageCohortSpec describes the attributes that a cohort is created with.
 type StorageCohortSpec struct {
 	// NodeSelector is used to specify the cohort to be considered
-	// +optional
-	NodeSelector *metav1.LabelSelector `json:"nodeSelector,omitempty"`
+	// +required
+	NodeSelector *metav1.LabelSelector `json:"nodeSelector"`
 
 	// CohortManager stores all the details about the cohort manager responsible for
 	// managing the cohort
 	// +optional
-	CohortManager interface{} `json:"cohortManager,omitempty"`
+	CohortManager []map[string]string `json:"cohortManager,omitempty"`
 
 	// DefaultStorageProvisioner is the default provisioner for the cohort which can be used
 	// for provisioning pools or volumes when no provisioner is specified in the storage pool
@@ -63,9 +62,10 @@ type StorageCohortSpec struct {
 
 // StorageCohortStatus stores information about the current status of a storage cohort.
 type StorageCohortStatus struct {
-	// Components is an array of different component's conditions which the cohort is comprised of.
+	// Components contains information about different component's conditions which the cohort is comprised of.
+	// The components can be cohort, cohort-manager, node agents or any other component that a cohort may contain.
 	// +optional
-	Components []ComponentStatus `json:"components,omitempty"`
+	Components ComponentStatus `json:"components,omitempty"`
 
 	// Capabilities represent capabilities that a cohort consists of
 	// +optional
@@ -90,52 +90,28 @@ type ComponentStatus struct {
 
 	// NodeCondition is an array of current observed cohort's individual nodes conditions.
 	// +optional
-	NodeCondition []CohortNodeCondition `json:"nodeCondition,omitempty"`
+	NodeCondition map[string]ComponentConditionList `json:"nodeCondition,omitempty"`
 }
 
-// CohortNodeCondition contains the latest status information for some or all the
-// nodes that the cohort is comprised of.
-type CohortNodeCondition struct {
-	// Name of the node. This must be a DNS_LABEL.
-	// For example: "virtual-node-1"
-	// +optional
-	Name string `json:"name"`
-
-	// Condition is an array of current observed node conditions.
-	// +optional
-	Condition []ComponentCondition `json:"condition,omitempty"`
-}
+// ComponentConditionList is an array of a component's current observed conditions
+type ComponentConditionList []ComponentCondition
 
 // CohortCondition contains condition information for a storage cohort.
 type CohortCondition struct {
-	// Type of component condition.
+	// Type of cohort condition.
 	Type CohortConditionType `json:"type"`
-	// Status of the condition, one of True, False, Unknown.
-	Status corev1.ConditionStatus `json:"status"`
-	// Last time we got an update on a given condition.
-	LastHeartbeatTime metav1.Time `json:"lastHeartbeatTime,omitempty"`
-	// Last time the condition transit from one status to another.
-	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
-	// (brief) reason for the condition's last transition.
-	Reason string `json:"reason,omitempty"`
-	// Human readable message indicating details about last transition.
-	Message string `json:"message,omitempty"`
+
+	// Condition represents cohort's current observed condition for the above type
+	Condition `json:"condition"`
 }
 
 // ComponentCondition contains condition information for a cohort's individual component.
 type ComponentCondition struct {
 	// Type of component condition.
 	Type string `json:"type"`
-	// Status of the condition, one of True, False, Unknown.
-	Status corev1.ConditionStatus `json:"status"`
-	// Last time we got an update on a given condition.
-	LastHeartbeatTime metav1.Time `json:"lastHeartbeatTime,omitempty"`
-	// Last time the condition transit from one status to another.
-	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
-	// (brief) reason for the condition's last transition.
-	Reason string `json:"reason,omitempty"`
-	// Human readable message indicating details about last transition.
-	Message string `json:"message,omitempty"`
+
+	// Condition represents a component's current observed condition for the above type
+	Condition `json:"condition"`
 }
 
 type CohortConditionType string
