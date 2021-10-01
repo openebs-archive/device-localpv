@@ -236,38 +236,31 @@ spec:
                       description: CohortCondition contains condition information
                         for a storage cohort.
                       properties:
-                        condition:
-                          description: Condition represents cohort's current observed
-                            condition for the above type
-                          properties:
-                            lastTransitionTime:
-                              description: Last time the condition transitioned from
-                                one status to another.
-                              format: date-time
-                              type: string
-                            lastUpdateTime:
-                              description: The last time this condition was updated.
-                              format: date-time
-                              type: string
-                            message:
-                              description: A human readable message indicating details
-                                about the transition.
-                              type: string
-                            reason:
-                              description: The reason for the condition's last transition.
-                              type: string
-                            status:
-                              description: Status of the condition, one of True, False,
-                                Unknown.
-                              type: string
-                          required:
-                          - status
-                          type: object
+                        lastTransitionTime:
+                          description: Last time the condition transitioned from one
+                            status to another.
+                          format: date-time
+                          type: string
+                        lastUpdateTime:
+                          description: The last time this condition was updated.
+                          format: date-time
+                          type: string
+                        message:
+                          description: A human readable message indicating details
+                            about the transition.
+                          type: string
+                        reason:
+                          description: The reason for the condition's last transition.
+                          type: string
+                        status:
+                          description: Status of the condition, one of True, False,
+                            Unknown.
+                          type: string
                         type:
                           description: Type of cohort condition.
                           type: string
                       required:
-                      - condition
+                      - status
                       - type
                       type: object
                     type: array
@@ -278,52 +271,48 @@ spec:
                       description: ComponentCondition contains condition information
                         for a cohort's individual component.
                       properties:
-                        condition:
-                          description: Condition represents a component's current
-                            observed condition for the above type
-                          properties:
-                            lastTransitionTime:
-                              description: Last time the condition transitioned from
-                                one status to another.
-                              format: date-time
-                              type: string
-                            lastUpdateTime:
-                              description: The last time this condition was updated.
-                              format: date-time
-                              type: string
-                            message:
-                              description: A human readable message indicating details
-                                about the transition.
-                              type: string
-                            reason:
-                              description: The reason for the condition's last transition.
-                              type: string
-                            status:
-                              description: Status of the condition, one of True, False,
-                                Unknown.
-                              type: string
-                          required:
-                          - status
-                          type: object
+                        lastTransitionTime:
+                          description: Last time the condition transitioned from one
+                            status to another.
+                          format: date-time
+                          type: string
+                        lastUpdateTime:
+                          description: The last time this condition was updated.
+                          format: date-time
+                          type: string
+                        message:
+                          description: A human readable message indicating details
+                            about the transition.
+                          type: string
+                        reason:
+                          description: The reason for the condition's last transition.
+                          type: string
+                        status:
+                          description: Status of the condition, one of True, False,
+                            Unknown.
+                          type: string
                         type:
                           description: Type of component condition.
                           type: string
                       required:
-                      - condition
+                      - status
                       - type
                       type: object
                     type: array
-                  nodeCondition:
-                    additionalProperties:
-                      description: ComponentConditionList is an array of a component's
-                        current observed conditions
-                      items:
-                        description: ComponentCondition contains condition information
-                          for a cohort's individual component.
-                        properties:
-                          condition:
-                            description: Condition represents a component's current
-                              observed condition for the above type
+                  nodeConditions:
+                    description: NodeConditions is an array of current observed cohort's
+                      individual nodes conditions.
+                    items:
+                      description: CohortNodeCondition contains the latest status
+                        information for some or all the nodes that the cohort is comprised
+                        of.
+                      properties:
+                        condition:
+                          description: Condition is an array of current observed node
+                            conditions.
+                          items:
+                            description: ComponentCondition contains condition information
+                              for a cohort's individual component.
                             properties:
                               lastTransitionTime:
                                 description: Last time the condition transitioned
@@ -345,20 +334,22 @@ spec:
                                 description: Status of the condition, one of True,
                                   False, Unknown.
                                 type: string
+                              type:
+                                description: Type of component condition.
+                                type: string
                             required:
                             - status
+                            - type
                             type: object
-                          type:
-                            description: Type of component condition.
-                            type: string
-                        required:
-                        - condition
-                        - type
-                        type: object
-                      type: array
-                    description: NodeCondition is an array of current observed cohort's
-                      individual nodes conditions.
-                    type: object
+                          type: array
+                        nodeName:
+                          description: 'Name of the node. This must be a DNS_LABEL.
+                            For example: "virtual-node-1"'
+                          type: string
+                      required:
+                      - nodeName
+                      type: object
+                    type: array
                 type: object
             type: object
         required:

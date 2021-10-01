@@ -88,13 +88,22 @@ type ComponentStatus struct {
 	// +optional
 	CohortManagerCondition []ComponentCondition `json:"cohortManagerCondition,omitempty"`
 
-	// NodeCondition is an array of current observed cohort's individual nodes conditions.
+	// NodeConditions is an array of current observed cohort's individual nodes conditions.
 	// +optional
-	NodeCondition map[string]ComponentConditionList `json:"nodeCondition,omitempty"`
+	NodeConditions []CohortNodeCondition `json:"nodeConditions,omitempty"`
 }
 
-// ComponentConditionList is an array of a component's current observed conditions
-type ComponentConditionList []ComponentCondition
+// CohortNodeCondition contains the latest status information for some or all the
+// nodes that the cohort is comprised of.
+type CohortNodeCondition struct {
+	// Name of the node. This must be a DNS_LABEL.
+	// For example: "virtual-node-1"
+	NodeName string `json:"nodeName"`
+
+	// Condition is an array of current observed node conditions.
+	// +optional
+	Condition []ComponentCondition `json:"condition,omitempty"`
+}
 
 // CohortCondition contains condition information for a storage cohort.
 type CohortCondition struct {
@@ -102,7 +111,7 @@ type CohortCondition struct {
 	Type CohortConditionType `json:"type"`
 
 	// Condition represents cohort's current observed condition for the above type
-	Condition `json:"condition"`
+	Condition `json:",inline"`
 }
 
 // ComponentCondition contains condition information for a cohort's individual component.
@@ -111,7 +120,7 @@ type ComponentCondition struct {
 	Type string `json:"type"`
 
 	// Condition represents a component's current observed condition for the above type
-	Condition `json:"condition"`
+	Condition `json:",inline"`
 }
 
 type CohortConditionType string
