@@ -17,7 +17,7 @@
 package v1alpha1
 
 import (
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -57,7 +57,7 @@ type StorageVolumeSpec struct {
 	// Parameters holds the configuration that is required at the time of volume creation
 	// Can be nvme or iscsi specific configurations
 	// +optional
-	Parameters interface{} `json:"parameters,omitempty"`
+	Parameters map[string]string `json:"parameters,omitempty"`
 
 	// Affinity is a group of affinity scheduling rules
 	// +optional
@@ -65,11 +65,11 @@ type StorageVolumeSpec struct {
 
 	// StorageCohortReference points to the pre-existing StorageCohort resource
 	// +optional
-	StorageCohortReference v1.ObjectReference `json:"storageCohortReference,omitempty"`
+	StorageCohortReference *corev1.ObjectReference `json:"storageCohortReference,omitempty"`
 
 	// StoragePoolReference points to the pre-existing StoragePool resource
 	// +optional
-	StoragePoolReference v1.ObjectReference `json:"storagePoolReference,omitempty"`
+	StoragePoolReference *corev1.ObjectReference `json:"storagePoolReference,omitempty"`
 
 	// StorageProvisioner specifies the provisioner name that is responsible for volume provisioning tasks.
 	// +optional
@@ -87,7 +87,7 @@ type StorageVolumeStatus struct {
 
 	// TargetInfo defines the target information i.e nqn, targetIP and status
 	// +optional
-	TargetInfo interface{} `json:"targetInfo,omitempty"`
+	TargetInfo []map[string]string `json:"targetInfo,omitempty"`
 }
 
 // StorageVolumeCondition contains condition information for a StorageVolume.
@@ -97,7 +97,7 @@ type StorageVolumeCondition struct {
 
 	// Status is the status of the condition.
 	// Can be True, False, Unknown.
-	Status v1.ConditionStatus `json:"status"`
+	Status corev1.ConditionStatus `json:"status"`
 
 	// Last time the condition transitioned from one status to another.
 	// +optional
