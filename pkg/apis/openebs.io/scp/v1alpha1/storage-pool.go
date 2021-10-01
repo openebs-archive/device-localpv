@@ -44,7 +44,7 @@ type StoragePool struct {
 type StoragePoolSpec struct {
 	// StorageCohortReference points to the StorageCohort resource, the pool is to be created upon
 	// +required
-	StorageCohortReference corev1.ObjectReference `json:"storageCohortReference"`
+	StorageCohortReference *corev1.ObjectReference `json:"storageCohortReference"`
 
 	// StorageProvisioner refers to the pool provisioner which will be responsible for creating
 	// and managing the pool
@@ -54,22 +54,39 @@ type StoragePoolSpec struct {
 	// Configuration points to the configuration, a custom resource, map of parameters or configmap
 	// that can be used to specify the pool and its device related configuration.
 	// +required
-	Configuration interface{} `json:"configuration"`
+	Configuration PoolConfiguration `json:"configuration"`
 
 	// Capabilities to be supported by the StoragePool
 	// +optional
 	Capabilities Capabilities `json:"capabilities,omitempty"`
 
 	// RequestedCapacity needed for the pool creation
-	// +required
+	// +optional
 	RequestedCapacity resource.Quantity `json:"requestedCapacity"`
+}
+
+// PoolConfiguration is the spec for pool to define all of its configuration
+type PoolConfiguration struct {
+	// Note: Use of both parameters and reference at the same time should be avoided.
+	// But if both are used then its upto the implementation to handle such scenario.
+
+	// Parameters are used to define all the properties or configurations of a pool.
+	// Note: This should be empty if the below Reference field is used to define the pool configurations.
+	// +optional
+	Parameters map[string]string `json:"parameters,omitempty"`
+
+	// Reference can point to either a custom resource or configmap containing all the
+	// configuration required for the pool.
+	// Note: This should be empty if the above Parameters field is used to define the pool configurations.
+	// +optional
+	Reference *corev1.ObjectReference `json:"reference,omitempty"`
 }
 
 // StoragePoolStatus is for handling status of StoragePool resource
 type StoragePoolStatus struct {
 	// ReferenceResource points to the pre-existing pool resource or the created pool resource after creation of pool.
 	// +optional
-	ReferenceResource corev1.ObjectReference `json:"referenceResource,omitempty"`
+	ReferenceResource *corev1.ObjectReference `json:"referenceResource,omitempty"`
 
 	// Capacity of the pool,viz total, used and available capacity
 	// +optional
@@ -132,25 +149,8 @@ type StoragePoolCondition struct {
 	// +optional
 	Type StoragePoolConditionType `json:"type"`
 
-	// Status of the condition, one of True, False, Unknown.
-	// +optional
-	Status corev1.ConditionStatus `json:"status"`
-
-	// The last time this condition was updated.
-	// +optional
-	LastUpdateTime metav1.Time `json:"lastUpdateTime,omitempty"`
-
-	// Last time the condition transitioned from one status to another.
-	// +optional
-	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
-
-	// The reason for the condition's last transition.
-	// +optional
-	Reason string `json:"reason,omitempty"`
-
-	// A human readable message indicating details about the transition.
-	// +optional
-	Message string `json:"message,omitempty"`
+	// Condition represents the storage pool's current observed condition for the above type
+	Condition `json:"condition"`
 }
 
 // StoragePoolConditionType specifies the particular state that the conditions are based on.
