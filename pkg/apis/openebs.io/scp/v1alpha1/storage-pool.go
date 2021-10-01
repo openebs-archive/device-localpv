@@ -150,7 +150,7 @@ type StoragePoolCondition struct {
 	Type StoragePoolConditionType `json:"type"`
 
 	// Condition represents the storage pool's current observed condition for the above type
-	Condition `json:"condition"`
+	Condition `json:",inline"`
 }
 
 // StoragePoolConditionType specifies the particular state that the conditions are based on.
