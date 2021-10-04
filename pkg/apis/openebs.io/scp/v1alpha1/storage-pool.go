@@ -157,25 +157,25 @@ type StoragePoolCondition struct {
 type StoragePoolConditionType string
 
 const (
-	// StoragePoolConditionTypePoolExpansion condition will be available when user triggers
-	// pool expansion by adding disks to the pool
-	StoragePoolConditionTypePoolExpansion StoragePoolConditionType = "PoolExpansion"
-
-	// StoragePoolConditionTypeDiskReplacement condition will be available when user triggers
-	// disk replacement.
-	StoragePoolConditionTypeDiskReplacement StoragePoolConditionType = "DiskReplacement"
-
-	// StoragePoolConditionTypeDiskUnavailable condition will be available when one (or) more
-	// disks were unavailable
-	StoragePoolConditionTypeDiskUnavailable StoragePoolConditionType = "DiskUnavailable"
-
-	// StoragePoolConditionTypelPoolLost condition will be available when the underlying specific pool
+	// StoragePoolConditionTypePoolOffline condition will be available when the underlying specific pool
 	// is not in usable.
-	StoragePoolConditionTypelPoolLost StoragePoolConditionType = "PoolOffline"
+	StoragePoolConditionTypePoolOffline StoragePoolConditionType = "PoolOffline"
 
 	// StoragePoolConditionTypePoolHealthy condition will be available when the underlying specific pool
 	// is usable.
 	StoragePoolConditionTypePoolHealthy StoragePoolConditionType = "PoolHealthy"
+
+	// StoragePoolConditionTypePoolDegraded condition will be available when the pool is
+	// unavailable
+	StoragePoolConditionTypePoolDegraded StoragePoolConditionType = "PoolDegraded"
+
+	// StoragePoolConditionTypePoolPending is the transition state of a pool when the pool is
+	// initially being provisioned
+	StoragePoolConditionTypePoolPending StoragePoolConditionType = "PoolPending"
+
+	// StoragePoolConditionTypePoolError is the state that represents an error has occurred
+	// during some pool (de)provisioning operation
+	StoragePoolConditionTypePoolError StoragePoolConditionType = "PoolError"
 )
 
 // StoragePoolList is a list of StoragePool resources

@@ -360,38 +360,30 @@ spec:
                   description: StoragePoolCondition describes the condition of a StoragePool
                     at a certain point based on a specific type
                   properties:
-                    condition:
-                      description: Condition represents the storage pool's current
-                        observed condition for the above type
-                      properties:
-                        lastTransitionTime:
-                          description: Last time the condition transitioned from one
-                            status to another.
-                          format: date-time
-                          type: string
-                        lastUpdateTime:
-                          description: The last time this condition was updated.
-                          format: date-time
-                          type: string
-                        message:
-                          description: A human readable message indicating details
-                            about the transition.
-                          type: string
-                        reason:
-                          description: The reason for the condition's last transition.
-                          type: string
-                        status:
-                          description: Status of the condition, one of True, False,
-                            Unknown.
-                          type: string
-                      required:
-                      - status
-                      type: object
+                    lastTransitionTime:
+                      description: Last time the condition transitioned from one status
+                        to another.
+                      format: date-time
+                      type: string
+                    lastUpdateTime:
+                      description: The last time this condition was updated.
+                      format: date-time
+                      type: string
+                    message:
+                      description: A human readable message indicating details about
+                        the transition.
+                      type: string
+                    reason:
+                      description: The reason for the condition's last transition.
+                      type: string
+                    status:
+                      description: Status of the condition, one of True, False, Unknown.
+                      type: string
                     type:
                       description: Type of StoragePool condition.
                       type: string
                   required:
-                  - condition
+                  - status
                   type: object
                 type: array
               volumeSizeMaxLimit:
