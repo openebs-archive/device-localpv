@@ -95,25 +95,8 @@ type StorageVolumeCondition struct {
 	// Type is the type of the condition.
 	Type StorageVolumeConditionType `json:"type"`
 
-	// Status is the status of the condition.
-	// Can be True, False, Unknown.
-	Status corev1.ConditionStatus `json:"status"`
-
-	// Last time the condition transitioned from one status to another.
-	// +optional
-	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
-
-	// Last time we got an update on a given condition.
-	// +optional
-	LastHeartbeatTime metav1.Time `json:"lastHeartbeatTime,omitempty"`
-
-	// Unique, one-word, CamelCase reason for the condition's last transition.
-	// +optional
-	Reason string `json:"reason,omitempty"`
-
-	// Human-readable message indicating details about last transition.
-	// +optional
-	Message string `json:"message,omitempty"`
+	// Condition is the current observed condition of a storage volume
+	Condition `json:",inline"`
 }
 
 // StorageVolumeConditionType is a valid value for StorageVolumeCondition.Type
