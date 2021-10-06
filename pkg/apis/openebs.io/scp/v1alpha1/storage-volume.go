@@ -29,10 +29,16 @@ import (
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:scope=Namespaced,shortName=sv
 type StorageVolume struct {
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
+
+	// Standard object's metadata.
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   StorageVolumeSpec   `json:"spec"`
+	// Spec defines a specification of a storage volume.
+	Spec StorageVolumeSpec `json:"spec"`
+
+	// Status represents the current information/status for the storage volume.
+	// +optional
 	Status StorageVolumeStatus `json:"status,omitempty"`
 }
 

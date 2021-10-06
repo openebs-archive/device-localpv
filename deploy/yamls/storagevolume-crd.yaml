@@ -44,9 +44,10 @@ spec:
               submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
+            description: Standard object's metadata.
             type: object
           spec:
-            description: StorageVolumeSpec defines the desired spec of StorageVolume
+            description: Spec defines a specification of a storage volume.
             properties:
               affinity:
                 description: Affinity is a group of affinity scheduling rules
@@ -601,7 +602,8 @@ spec:
             - capacity
             type: object
           status:
-            description: StorageVolumeStatus defines the observed state of StorageVolume
+            description: Status represents the current information/status for the
+              storage volume.
             properties:
               capacity:
                 description: Capacity stores total, used and available size
