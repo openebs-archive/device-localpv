@@ -51,7 +51,7 @@ type StorageCohortSpec struct {
 	// CohortManager stores all the details about the cohort manager responsible for
 	// managing the cohort
 	// +optional
-	CohortManager []map[string]string `json:"cohortManager,omitempty"`
+	CohortManager map[string]string `json:"cohortManager,omitempty"`
 
 	// DefaultStorageProvisioner is the default provisioner for the cohort which can be used
 	// for provisioning pools or volumes when no provisioner is specified in the storage pool

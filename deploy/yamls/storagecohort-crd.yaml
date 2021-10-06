@@ -48,13 +48,11 @@ spec:
             description: Spec defines the behavior of a cohort.
             properties:
               cohortManager:
+                additionalProperties:
+                  type: string
                 description: CohortManager stores all the details about the cohort
                   manager responsible for managing the cohort
-                items:
-                  additionalProperties:
-                    type: string
-                  type: object
-                type: array
+                type: object
               defaultStorageProvisioner:
                 description: 'DefaultStorageProvisioner is the default provisioner
                   for the cohort which can be used for provisioning pools or volumes
