@@ -157,25 +157,17 @@ type StoragePoolCondition struct {
 type StoragePoolConditionType string
 
 const (
-	// StoragePoolConditionTypePoolOffline condition will be available when the underlying specific pool
-	// is not in usable.
-	StoragePoolConditionTypePoolOffline StoragePoolConditionType = "PoolOffline"
-
 	// StoragePoolConditionTypePoolHealthy condition will be available when the underlying specific pool
 	// is usable.
 	StoragePoolConditionTypePoolHealthy StoragePoolConditionType = "PoolHealthy"
 
 	// StoragePoolConditionTypePoolDegraded condition will be available when the pool is
-	// unavailable
+	// partially unavailable
 	StoragePoolConditionTypePoolDegraded StoragePoolConditionType = "PoolDegraded"
 
-	// StoragePoolConditionTypePoolPending is the transition state of a pool when the pool is
+	// StoragePoolConditionTypeCreationPending is the transition state of a pool when the pool is
 	// initially being provisioned
-	StoragePoolConditionTypePoolPending StoragePoolConditionType = "PoolPending"
-
-	// StoragePoolConditionTypePoolError is the state that represents an error has occurred
-	// during some pool (de)provisioning operation
-	StoragePoolConditionTypePoolError StoragePoolConditionType = "PoolError"
+	StoragePoolConditionTypeCreationPending StoragePoolConditionType = "CreationPending"
 )
 
 // StoragePoolList is a list of StoragePool resources
