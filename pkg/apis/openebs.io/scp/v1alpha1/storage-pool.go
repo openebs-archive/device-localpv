@@ -168,6 +168,14 @@ const (
 	// StoragePoolConditionTypeCreationPending is the transition state of a pool when the pool is
 	// initially being provisioned
 	StoragePoolConditionTypeCreationPending StoragePoolConditionType = "CreationPending"
+
+	// StoragePoolConditionTypeDeletionPending is the transition state of a pool when the pool is
+	// getting deleted
+	StoragePoolConditionTypeDeletionPending StoragePoolConditionType = "DeletionPending"
+
+	// StoragePoolConditionTypeUpgradePending is the transition state of a pool when the pool is
+	// updated
+	StoragePoolConditionTypeUpgradePending StoragePoolConditionType = "UpgradePending"
 )
 
 // StoragePoolList is a list of StoragePool resources
