@@ -109,11 +109,11 @@ type StorageVolumeCondition struct {
 type StorageVolumeConditionType string
 
 const (
-	// StorageVolumeConditionTypePending indicates pending status of the StorageVolume object
-	StorageVolumeConditionTypePending StorageVolumeConditionType = "Pending"
-
 	// StorageVolumeConditionTypeScheduled represents scheduled StorageVolume object
 	StorageVolumeConditionTypeScheduled StorageVolumeConditionType = "Scheduled"
+
+	// StorageVolumeConditionTypeCreationPending represents volume creation pending on the storage nodes
+	StorageVolumeConditionTypeCreationPending StorageVolumeConditionType = "CreationPending"
 
 	// StorageVolumeConditionTypeReady represents StorageVolume object is in ready state
 	StorageVolumeConditionTypeReady StorageVolumeConditionType = "Ready"
