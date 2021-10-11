@@ -133,6 +133,9 @@ const (
 	CohortConditionTypeReady CohortConditionType = "Ready"
 	// CohortConditionTypeSchedulable means the cohort is healthy and schedulable.
 	CohortConditionTypeSchedulable CohortConditionType = "Schedulable"
+	// CohortConditionTypeDeletionPending is the transition state of a cohort when it is
+	// getting deleted
+	CohortConditionTypeDeletionPending CohortConditionType = "DeletionPending"
 	// TODO add more types if necessary
 )
 
