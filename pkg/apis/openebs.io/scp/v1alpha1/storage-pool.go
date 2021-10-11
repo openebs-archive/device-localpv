@@ -175,7 +175,7 @@ const (
 
 	// StoragePoolConditionTypeUpgradePending is the transition state of a pool when the pool is
 	// updated
-	StoragePoolConditionTypeUpgradePending StoragePoolConditionType = "UpgradePending"
+	StoragePoolConditionTypeUpdatePending StoragePoolConditionType = "UpdatePending"
 )
 
 // StoragePoolList is a list of StoragePool resources
