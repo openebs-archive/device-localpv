@@ -117,6 +117,12 @@ const (
 
 	// StorageVolumeConditionTypeReady represents StorageVolume object is in ready state
 	StorageVolumeConditionTypeReady StorageVolumeConditionType = "Ready"
+
+	// StorageVolumeConditionTypeUpdatePending represents updating state for a storage volume.
+	StorageVolumeConditionTypeUpdatePending StorageVolumeConditionType = "UpdatePending"
+
+	// StorageVolumeConditionTypeDeletionPending represents volume deletion on the storage nodes.
+	StorageVolumeConditionTypeDeletionPending StorageVolumeConditionType = "DeletionPending"
 )
 
 // VolumeCapacity defines total, used and available size
