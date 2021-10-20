@@ -9,7 +9,7 @@ import (
 type Affinity struct {
 
 	// VolumeAffinity helps to place a volume in the same topology(storage cohort)
-	// where old volumes are present, if old volume not found the it can go to any cohort.
+	// where old volumes are present, if old volume not found then it can go to any cohort.
 	// Old volumes are identified using LabelSelector. Using this we can ensure that if any
 	// pod is requesting for 2 volumes then 2 volumes will be scheduled in the same storage
 	// cohort topology. ie - if app-0 replica of sts app is requesting for 2 volumes data-0
@@ -45,7 +45,12 @@ type Affinity struct {
 	TopologySpreadConstraint []corev1.TopologySpreadConstraint `json:"topologySpreadConstraint,omitempty"`
 }
 
-// VolumeAffinityTerm specifies affinity requirements for a StorageVolume
+// VolumeAffinityTerm defines a rule that new volume should be
+// co-located (affinity) or not co-located (anti-affinity) with,
+// where co-located is defined as running on a cohort whose value of
+// the label with key <topologyKey> matches that of any cohort on which
+// old volume is placed and it is identified through labelSelector i.e matchLabels and matchExpressions.
+// The result of matchLabels and matchExpressions are ANDed.
 type VolumeAffinityTerm struct {
 	// TopologyKey is the key of cohort labels. StorageCohort that have a label with this key
 	// and identical values are considered to be in the same topology.

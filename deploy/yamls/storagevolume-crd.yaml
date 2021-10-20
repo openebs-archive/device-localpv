@@ -265,7 +265,7 @@ spec:
                   volumeAffinity:
                     description: VolumeAffinity helps to place a volume in the same
                       topology(storage cohort) where old volumes are present, if old
-                      volume not found the it can go to any cohort. Old volumes are
+                      volume not found then it can go to any cohort. Old volumes are
                       identified using LabelSelector. Using this we can ensure that
                       if any pod is requesting for 2 volumes then 2 volumes will be
                       scheduled in the same storage cohort topology. ie - if app-0
@@ -273,8 +273,13 @@ spec:
                       both the volumes will be scheduled in the same storage cohort
                       topology. All volumeAffinity requirements are ANDed together.
                     items:
-                      description: VolumeAffinityTerm specifies affinity requirements
-                        for a StorageVolume
+                      description: VolumeAffinityTerm defines a rule that new volume
+                        should be co-located (affinity) or not co-located (anti-affinity)
+                        with, where co-located is defined as running on a cohort whose
+                        value of the label with key <topologyKey> matches that of
+                        any cohort on which old volume is placed and it is identified
+                        through labelSelector i.e matchLabels and matchExpressions.
+                        The result of matchLabels and matchExpressions are ANDed.
                       properties:
                         labelSelector:
                           description: A label query over a set of resources, in this
@@ -340,8 +345,13 @@ spec:
                       the volumes will be scheduled in the different storage cohort
                       topology. All volumeAntiAffinity requirements are ANDed together.
                     items:
-                      description: VolumeAffinityTerm specifies affinity requirements
-                        for a StorageVolume
+                      description: VolumeAffinityTerm defines a rule that new volume
+                        should be co-located (affinity) or not co-located (anti-affinity)
+                        with, where co-located is defined as running on a cohort whose
+                        value of the label with key <topologyKey> matches that of
+                        any cohort on which old volume is placed and it is identified
+                        through labelSelector i.e matchLabels and matchExpressions.
+                        The result of matchLabels and matchExpressions are ANDed.
                       properties:
                         labelSelector:
                           description: A label query over a set of resources, in this
@@ -521,7 +531,8 @@ spec:
                 type: object
               storageCohortReference:
                 description: StorageCohortReference points to the pre-existing StorageCohort
-                  resource
+                  resource. Scheduler picks up the volume object and populate it based
+                  on availability and scheduling constraints.
                 properties:
                   apiVersion:
                     description: API version of the referent.
@@ -558,7 +569,7 @@ spec:
                 type: object
               storagePoolReference:
                 description: StoragePoolReference points to the pre-existing StoragePool
-                  resource
+                  resource.
                 properties:
                   apiVersion:
                     description: API version of the referent.
@@ -664,8 +675,8 @@ spec:
                   type: object
                 type: array
               targetInfo:
-                description: TargetInfo defines the target information i.e nqn, targetIP
-                  and status
+                description: 'TargetInfo defines the target information i.e nqn, targetIP
+                  and status for example: [{ "nqn": "","targetIP":"","status":""}]'
                 items:
                   additionalProperties:
                     type: string

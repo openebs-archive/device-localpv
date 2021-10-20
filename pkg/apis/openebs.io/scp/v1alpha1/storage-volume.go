@@ -67,13 +67,14 @@ type StorageVolumeSpec struct {
 
 	// Affinity is a group of affinity scheduling rules
 	// +optional
-	Affinity Affinity `json:"affinity,omitempty"`
+	Affinity *Affinity `json:"affinity,omitempty"`
 
-	// StorageCohortReference points to the pre-existing StorageCohort resource
+	// StorageCohortReference points to the pre-existing StorageCohort resource. Scheduler picks up the volume
+	// object and populate it based on availability and scheduling constraints.
 	// +optional
 	StorageCohortReference *corev1.ObjectReference `json:"storageCohortReference,omitempty"`
 
-	// StoragePoolReference points to the pre-existing StoragePool resource
+	// StoragePoolReference points to the pre-existing StoragePool resource.
 	// +optional
 	StoragePoolReference *corev1.ObjectReference `json:"storagePoolReference,omitempty"`
 
@@ -92,6 +93,7 @@ type StorageVolumeStatus struct {
 	Capacity VolumeCapacity `json:"capacity,omitempty"`
 
 	// TargetInfo defines the target information i.e nqn, targetIP and status
+	// for example: [{ "nqn": "","targetIP":"","status":""}]
 	// +optional
 	TargetInfo []map[string]string `json:"targetInfo,omitempty"`
 }
