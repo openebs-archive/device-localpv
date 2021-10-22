@@ -73,7 +73,7 @@ type StorageCohortStatus struct {
 }
 
 // ComponentStatus stores information about the current status of storage cohort's components.
-// Note: For scheduling purpose, the scheduler will only br concerned with the CohortCondition
+// Note: For scheduling purpose, the scheduler will only be concerned with the CohortCondition
 // to make scheduling decisions. Other components status can be used for monitoring purposes
 // or troubleshooting purpose.
 type ComponentStatus struct {
