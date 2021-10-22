@@ -88,15 +88,15 @@ const (
 // MultiPathing specifies fault toleration type, viz None, OnlineActive, OnlinePassive
 type MultiPathing string
 
-const(
+const (
 	// MultiPathingNone specifies fault toleration type to be None
-	MultiPathingNone MultiPathing="None"
+	MultiPathingNone MultiPathing = "None"
 
 	// MultiPathingOnlineActive specifies fault toleration type to be OnlineActive
-	MultiPathingOnlineActive MultiPathing="OnlineActive"
+	MultiPathingOnlineActive MultiPathing = "OnlineActive"
 
 	// MultiPathingOnlinePassive specifies fault toleration type to be OnlinePassive
-	MultiPathingOnlinePassive MultiPathing="OnlinePassive"
+	MultiPathingOnlinePassive MultiPathing = "OnlinePassive"
 )
 
 // DataSecurityCapabilities defines media encryption algorithms and data sanitization policy.
