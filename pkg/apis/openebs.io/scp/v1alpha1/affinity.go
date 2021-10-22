@@ -46,7 +46,7 @@ type Affinity struct {
 }
 
 // VolumeAffinityTerm defines a rule that new volume should be
-// co-located (affinity) or not co-located (anti-affinity) with,
+// co-located (affinity) or not co-located (anti-affinity) with old volumes,
 // where co-located is defined as running on a cohort whose value of
 // the label with key <topologyKey> matches that of any cohort on which
 // old volume is placed and it is identified through labelSelector i.e matchLabels and matchExpressions.
