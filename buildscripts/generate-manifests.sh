@@ -78,6 +78,8 @@ echo '
 cat deploy/yamls/scp.openebs.io_storagepools.yaml >> deploy/yamls/storagepool-crd.yaml
 rm deploy/yamls/scp.openebs.io_storagepools.yaml
 
+echo '
+
 ##############################################
 ###########                       ############
 ###########   StorageCohort CRD   ############
