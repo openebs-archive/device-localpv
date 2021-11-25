@@ -22,6 +22,7 @@ import (
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 
+	"github.com/openebs/device-localpv/pkg/builder/volbuilder"
 	"github.com/openebs/device-localpv/pkg/device"
 	"github.com/openebs/device-localpv/tests/container"
 	"github.com/openebs/device-localpv/tests/deploy"
@@ -397,4 +398,72 @@ func deletePVC(pvcname string) {
 	ginkgo.By("verifying deleted pvc")
 	status := IsPVCDeletedEventually(pvcname)
 	gomega.Expect(status).To(gomega.Equal(true), "while trying to get deleted pvc")
+}
+
+func IsDeviceVolDeletedEventually() bool {
+	ginkgo.By("Fetching device volume to check if its deleted")
+	return gomega.Eventually(func() bool {
+		_, err := DeviceClient.WithNamespace(OpenEBSNamespace).Get(DeviceVolName, metav1.GetOptions{})
+		return k8serrors.IsNotFound(err)
+	},
+		120, 5).
+		Should(gomega.BeTrue())
+
+}
+
+func CreateDeviceVolume() {
+
+	nodeList, err := NodeClient.List(metav1.ListOptions{})
+	gomega.Expect(err).To(gomega.BeNil(), "while retrieving DeviceNode")
+	gomega.Expect(len(nodeList.Items) > 0).To(gomega.BeTrue(), "while retrieving DeviceNode")
+
+	ginkgo.By("Building DeviceVol")
+	capacity := "109951162777600" // 100Ti
+	volObj, err := volbuilder.NewBuilder().
+		WithName(DeviceVolName).
+		WithCapacity(capacity).
+		WithDeviceName(DeviceMetaName).
+		WithOwnerNode(nodeList.Items[0].ObjectMeta.Name).
+		WithVolumeStatus(device.DeviceStatusPending).Build()
+
+	ginkgo.By("Creating the above DeviceVol")
+	volObj, err = DeviceClient.WithNamespace(OpenEBSNamespace).Create(volObj)
+	gomega.Expect(err).To(
+		gomega.BeNil(),
+		"while creating DeviceVol {%s} in namespace {%s}",
+		DeviceVolName,
+		OpenEBSNamespace,
+	)
+
+	_, err = DeviceClient.WithNamespace(OpenEBSNamespace).Get(DeviceVolName, metav1.GetOptions{})
+	gomega.Expect(err).To(
+		gomega.BeNil(),
+		"while retrieving DeviceVol {%s} in namespace {%s}",
+		DeviceVolName,
+		OpenEBSNamespace,
+	)
+}
+
+func IsDeviceVolStatusFailedEventually() {
+	status := gomega.Eventually(func() bool {
+		deviceVol, _ := DeviceClient.WithNamespace(OpenEBSNamespace).Get(DeviceVolName, metav1.GetOptions{})
+		return deviceVol.Status.State == device.DeviceStatusFailed
+	},
+		120, 5).
+		Should(gomega.BeTrue())
+
+	gomega.Expect(status).To(gomega.Equal(true), "while checking the status of DeviceVol")
+	ginkgo.By("DeviceVol is in failed state")
+}
+
+func deleteDeviceVol() {
+	err := DeviceClient.WithNamespace(OpenEBSNamespace).Delete(DeviceVolName)
+	gomega.Expect(err).To(
+		gomega.BeNil(),
+		"while deleting deviceVol {%s} in namespace {%s}",
+		DeviceVolName,
+		OpenEBSNamespace,
+	)
+	status := IsDeviceVolDeletedEventually()
+	gomega.Expect(status).To(gomega.Equal(true), "while trying to get deleted DeviceVol")
 }

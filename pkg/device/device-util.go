@@ -30,6 +30,7 @@ import (
 	"k8s.io/klog"
 
 	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
+	"github.com/openebs/device-localpv/pkg/device/volumeerror"
 )
 
 // Partition Commands
@@ -159,7 +160,10 @@ func CreateVolume(vol *apis.DeviceVolume) error {
 	disk, start, err := findBestPart(diskMetaName, capacityMiB)
 	if err != nil {
 		klog.Errorf("findBestPart Failed")
-		return err
+		return &volumeerror.Error{
+			Kind: volumeerror.ErrorKindBestFitFailed,
+			Err:  err,
+		}
 	}
 	return createPartAndWipeFS(disk, start, partitionName, capacityMiB, diskMetaName)
 }

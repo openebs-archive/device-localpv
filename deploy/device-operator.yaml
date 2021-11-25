@@ -130,6 +130,7 @@ spec:
                 enum:
                 - Pending
                 - Ready
+                - Failed
                 type: string
             type: object
         required:

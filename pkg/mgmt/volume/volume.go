@@ -18,10 +18,12 @@ package volume
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
 	"github.com/openebs/device-localpv/pkg/device"
+	"github.com/openebs/device-localpv/pkg/device/volumeerror"
 	k8serror "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -84,13 +86,28 @@ func (c *VolController) syncVol(vol *apis.DeviceVolume) error {
 		}
 		return err
 	}
+
+	// if status is Pending then it means we are creating the volume.
+	// Otherwise, we are just ignoring the event.
+	switch vol.Status.State {
+	case device.DeviceStatusFailed:
+		klog.Warningf("Skipping retrying lvm volume provisioning as its already in failed state: %+v", vol.Status.Error)
+		return nil
+	case device.DeviceStatusReady:
+		klog.Info("lvm volume already provisioned")
+		return nil
+	}
+
 	// if finalizer is not set then it means we are creating
 	// the volume. And if it is set then volume has already been
 	// created and this event is for property change only.
-	if vol.Status.State != device.DeviceStatusReady {
+	if vol.Status.State == device.DeviceStatusPending {
 		err = device.CreateVolume(vol)
 		if err == nil {
-			err = device.UpdateVolInfo(vol)
+			err = device.UpdateVolInfo(vol, device.DeviceStatusReady)
+		} else if custError, ok := err.(*volumeerror.Error); ok && custError.Kind == volumeerror.ErrorKindBestFitFailed {
+			vol.Status.Error = c.transformDeviceVolError(err)
+			return device.UpdateVolInfo(vol, device.DeviceStatusFailed)
 		}
 	}
 	return err
@@ -245,4 +262,21 @@ func (c *VolController) processNextWorkItem() bool {
 	}
 
 	return true
+}
+
+func (c *VolController) transformDeviceVolError(err error) *apis.VolumeError {
+	volErr := &apis.VolumeError{
+		Code:    apis.Internal,
+		Message: err.Error(),
+	}
+	execErr, ok := err.(*volumeerror.Error)
+	if !ok {
+		return volErr
+	}
+
+	if strings.Contains(strings.ToLower(string(execErr.Err.Error())),
+		"free space") {
+		volErr.Code = apis.InsufficientCapacity
+	}
+	return volErr
 }

@@ -22,6 +22,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/openebs/device-localpv/pkg/builder/nodebuilder"
 	"github.com/openebs/device-localpv/pkg/builder/volbuilder"
 	"github.com/openebs/device-localpv/tests/deploy"
 	"github.com/openebs/device-localpv/tests/pod"
@@ -43,6 +44,7 @@ const (
 
 var (
 	DeviceClient     *volbuilder.Kubeclient
+	NodeClient       *nodebuilder.Kubeclient
 	SCClient         *sc.Kubeclient
 	PVCClient        *pvc.Kubeclient
 	DeployClient     *deploy.Kubeclient
@@ -52,6 +54,7 @@ var (
 	LocalProvisioner = "device.csi.openebs.io"
 	pvcName          = "devicepv-pvc"
 	appName          = "busybox-devicepv"
+	DeviceVolName    = "pvc-123"
 
 	nsObj            *corev1.Namespace
 	scObj            *storagev1.StorageClass
@@ -76,6 +79,7 @@ func init() {
 	DeployClient = deploy.NewKubeClient(deploy.WithKubeConfigPath(KubeConfigPath))
 	PodClient = pod.NewKubeClient(pod.WithKubeConfigPath(KubeConfigPath))
 	DeviceClient = volbuilder.NewKubeclient(volbuilder.WithKubeConfigPath(KubeConfigPath))
+	NodeClient = nodebuilder.NewKubeclient(nodebuilder.WithKubeConfigPath(KubeConfigPath))
 }
 
 func TestSource(t *testing.T) {
