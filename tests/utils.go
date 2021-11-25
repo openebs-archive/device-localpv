@@ -400,6 +400,7 @@ func deletePVC(pvcname string) {
 	gomega.Expect(status).To(gomega.Equal(true), "while trying to get deleted pvc")
 }
 
+// IsDeviceVolDeletedEventually : After deleted check if resource still exists
 func IsDeviceVolDeletedEventually() bool {
 	ginkgo.By("Fetching device volume to check if its deleted")
 	return gomega.Eventually(func() bool {
@@ -411,6 +412,7 @@ func IsDeviceVolDeletedEventually() bool {
 
 }
 
+// CreateDeviceVolume : Create new DeviceVol resource
 func CreateDeviceVolume() {
 
 	nodeList, err := NodeClient.List(metav1.ListOptions{})
@@ -444,6 +446,7 @@ func CreateDeviceVolume() {
 	)
 }
 
+// IsDeviceVolStatusFailedEventually : Checks for the DeviceVol status and waits till it becomes failed
 func IsDeviceVolStatusFailedEventually() {
 	status := gomega.Eventually(func() bool {
 		deviceVol, _ := DeviceClient.WithNamespace(OpenEBSNamespace).Get(DeviceVolName, metav1.GetOptions{})
