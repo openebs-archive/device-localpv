@@ -11,11 +11,11 @@
 # to generate the CRD definition
 
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.2.8
+    controller-gen.kubebuilder.io/version: v0.4.0
   creationTimestamp: null
   name: devicenodes.local.openebs.io
 spec:
@@ -25,67 +25,65 @@ spec:
     listKind: DeviceNodeList
     plural: devicenodes
     singular: devicenode
-  preserveUnknownFields: false
   scope: Namespaced
-  validation:
-    openAPIV3Schema:
-      description: DeviceNode records information about all devices available in a
-        node. In general, the openebs node-agent creates the DeviceNode object & periodically
-        synchronizing the devices available in the node. DeviceNode has an owner reference
-        pointing to the corresponding node object.
-      properties:
-        apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation
-            of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
-        devices:
-          items:
-            description: Device specifies attributes of a given device that exists
-              on node.
-            properties:
-              free:
-                anyOf:
-                - type: integer
-                - type: string
-                description: Free specifies the available capacity of the device.
-                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                x-kubernetes-int-or-string: true
-              name:
-                description: Name of the device(from the meta partition)
-                minLength: 1
-                type: string
-              size:
-                anyOf:
-                - type: integer
-                - type: string
-                description: Size specifies the total size of the device.
-                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                x-kubernetes-int-or-string: true
-              uuid:
-                description: UUID denotes a unique identity of a device.
-                minLength: 1
-                type: string
-            required:
-            - free
-            - name
-            - size
-            - uuid
-            type: object
-          type: array
-        kind:
-          description: 'Kind is a string value representing the REST resource this
-            object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
-        metadata:
-          type: object
-      required:
-      - devices
-      type: object
-  version: v1alpha1
   versions:
   - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: DeviceNode records information about all devices available in
+          a node. In general, the openebs node-agent creates the DeviceNode object
+          & periodically synchronizing the devices available in the node. DeviceNode
+          has an owner reference pointing to the corresponding node object.
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          devices:
+            items:
+              description: Device specifies attributes of a given device that exists
+                on node.
+              properties:
+                free:
+                  anyOf:
+                  - type: integer
+                  - type: string
+                  description: Free specifies the available capacity of the device.
+                  pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                  x-kubernetes-int-or-string: true
+                name:
+                  description: Name of the device(from the meta partition)
+                  minLength: 1
+                  type: string
+                size:
+                  anyOf:
+                  - type: integer
+                  - type: string
+                  description: Size specifies the total size of the device.
+                  pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                  x-kubernetes-int-or-string: true
+                uuid:
+                  description: UUID denotes a unique identity of a device.
+                  minLength: 1
+                  type: string
+              required:
+              - free
+              - name
+              - size
+              - uuid
+              type: object
+            type: array
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+        required:
+        - devices
+        type: object
     served: true
     storage: true
 status:
