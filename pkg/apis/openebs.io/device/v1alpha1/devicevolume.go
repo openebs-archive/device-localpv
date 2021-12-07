@@ -17,6 +17,8 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"fmt"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -77,7 +79,6 @@ type VolStatus struct {
 	// The state "Pending" means that the volume creation request has not
 	// processed yet. The state "Ready" means that the volume has been created
 	// and it is ready for the use.
-	// Failed
 	// +kubebuilder:validation:Enum=Pending;Ready;Failed
 	State string `json:"state,omitempty"`
 
@@ -97,7 +98,7 @@ type VolumeError struct {
 type VolumeErrorCode string
 
 func (e *VolumeError) Error() string {
-	return e.Message
+	return fmt.Sprintf("%s - %s", e.Code, e.Message)
 }
 
 const (
