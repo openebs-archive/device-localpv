@@ -18,12 +18,10 @@ package volume
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
 	"github.com/openebs/device-localpv/pkg/device"
-	"github.com/openebs/device-localpv/pkg/device/volumeerror"
 	k8serror "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -102,8 +100,8 @@ func (c *VolController) syncVol(vol *apis.DeviceVolume) error {
 		err = device.CreateVolume(vol)
 		if err == nil {
 			err = device.UpdateVolInfo(vol, device.DeviceStatusReady)
-		} else if custError, ok := err.(*volumeerror.Error); ok && custError.Kind == volumeerror.ErrorKindBestFitFailed {
-			vol.Status.Error = c.transformDeviceVolError(err)
+		} else if custError, ok := err.(*apis.VolumeError); ok && custError.Code == apis.InsufficientCapacity {
+			vol.Status.Error = custError
 			return device.UpdateVolInfo(vol, device.DeviceStatusFailed)
 		}
 	}
@@ -259,21 +257,4 @@ func (c *VolController) processNextWorkItem() bool {
 	}
 
 	return true
-}
-
-func (c *VolController) transformDeviceVolError(err error) *apis.VolumeError {
-	volErr := &apis.VolumeError{
-		Code:    apis.Internal,
-		Message: err.Error(),
-	}
-	execErr, ok := err.(*volumeerror.Error)
-	if !ok {
-		return volErr
-	}
-
-	if strings.Contains(strings.ToLower(execErr.Err.Error()),
-		"free space") {
-		volErr.Code = apis.InsufficientCapacity
-	}
-	return volErr
 }

@@ -77,6 +77,7 @@ type VolStatus struct {
 	// The state "Pending" means that the volume creation request has not
 	// processed yet. The state "Ready" means that the volume has been created
 	// and it is ready for the use.
+	// Failed
 	// +kubebuilder:validation:Enum=Pending;Ready;Failed
 	State string `json:"state,omitempty"`
 
@@ -94,6 +95,10 @@ type VolumeError struct {
 // VolumeErrorCode represents the error code to represent
 // specific class of errors.
 type VolumeErrorCode string
+
+func (e *VolumeError) Error() string {
+	return e.Message
+}
 
 const (
 	// Internal represents system internal error.
