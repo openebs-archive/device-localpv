@@ -17,8 +17,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"fmt"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -96,10 +94,6 @@ type VolumeError struct {
 // VolumeErrorCode represents the error code to represent
 // specific class of errors.
 type VolumeErrorCode string
-
-func (e *VolumeError) Error() string {
-	return fmt.Sprintf("%s - %s", e.Code, e.Message)
-}
 
 const (
 	// Internal represents system internal error.
