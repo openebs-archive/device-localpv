@@ -57,7 +57,14 @@ func blockVolCreationTest() {
 	By("Deleting storage class", deleteStorageClass)
 }
 
+func volCreationFailTest() {
+	By("Create and Verify DeviceVol resource", CreateDeviceVolume)
+	By("Checking the state of DeviceVol", IsDeviceVolStatusFailedEventually)
+	By("Deleting DeviceVol", deleteDeviceVol)
+}
+
 func volumeCreationTest() {
 	By("Running volume creation test", fsVolCreationTest)
 	By("Running block volume creation test", blockVolCreationTest)
+	By("Running the volume creation failed test", volCreationFailTest)
 }

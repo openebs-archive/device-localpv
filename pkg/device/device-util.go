@@ -159,7 +159,10 @@ func CreateVolume(vol *apis.DeviceVolume) error {
 	disk, start, err := findBestPart(diskMetaName, capacityMiB)
 	if err != nil {
 		klog.Errorf("findBestPart Failed")
-		return err
+		return &apis.VolumeError{
+			Code:    apis.InsufficientCapacity,
+			Message: err.Error(),
+		}
 	}
 	return createPartAndWipeFS(disk, start, partitionName, capacityMiB, diskMetaName)
 }

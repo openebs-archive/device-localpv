@@ -129,17 +129,21 @@ func GetDeviceVolumeState(volID string) (string, string, error) {
 }
 
 // UpdateVolInfo updates DeviceVolume CR with node id and finalizer
-func UpdateVolInfo(vol *apis.DeviceVolume) error {
-	finalizers := []string{DeviceFinalizer}
-	labels := map[string]string{DeviceNodeKey: NodeID}
-
+func UpdateVolInfo(vol *apis.DeviceVolume, state string) error {
+	klog.Infof("Upadting the DeviceVol status to : %s", state)
 	if vol.Finalizers != nil {
 		return nil
 	}
 
+	var finalizers []string
+	labels := map[string]string{DeviceNodeKey: NodeID}
+	switch state {
+	case DeviceStatusReady:
+		finalizers = append(finalizers, DeviceFinalizer)
+	}
 	newVol, err := volbuilder.BuildFrom(vol).
 		WithFinalizer(finalizers).
-		WithVolumeStatus(DeviceStatusReady).
+		WithVolumeStatus(state).
 		WithLabels(labels).Build()
 
 	if err != nil {

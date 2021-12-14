@@ -84,13 +84,25 @@ func (c *VolController) syncVol(vol *apis.DeviceVolume) error {
 		}
 		return err
 	}
-	// if finalizer is not set then it means we are creating
-	// the volume. And if it is set then volume has already been
-	// created and this event is for property change only.
-	if vol.Status.State != device.DeviceStatusReady {
+
+	// if status is not Pending then we are just ignoring the event.
+	switch vol.Status.State {
+	case device.DeviceStatusFailed:
+		klog.Warningf("Skipping retrying device volume provisioning as its already in failed state: %+v", vol.Status.Error)
+		return nil
+	case device.DeviceStatusReady:
+		klog.Info("device volume already provisioned")
+		return nil
+	}
+
+	// if the status Pending means we will try to create the volume
+	if vol.Status.State == device.DeviceStatusPending {
 		err = device.CreateVolume(vol)
 		if err == nil {
-			err = device.UpdateVolInfo(vol)
+			err = device.UpdateVolInfo(vol, device.DeviceStatusReady)
+		} else if custError, ok := err.(*apis.VolumeError); ok && custError.Code == apis.InsufficientCapacity {
+			vol.Status.Error = custError
+			return device.UpdateVolInfo(vol, device.DeviceStatusFailed)
 		}
 	}
 	return err
