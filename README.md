@@ -12,7 +12,7 @@ CSI Driver for using Local Block Devices
 
 ## Project Status
 
-Currently, the Device-LocalPV CSI Driver is in pre-alpha. The users/organizations using OpenEBS can be found [here](https://github.com/openebs/openebs/tree/master/adopters)
+Currently, the Device-LocalPV CSI Driver is in alpha. The users/organizations using OpenEBS can be found [here](https://github.com/openebs/openebs/tree/master/adopters)
 
 ## Usage
 
