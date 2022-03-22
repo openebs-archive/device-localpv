@@ -54,6 +54,9 @@ type Config struct {
 	// Excludes additional process or go runtime related metrics (i.e process_*, go_*).
 	// Default is true
 	DisableExporterMetrics bool
+
+	// Ignore the Block devices by specifying the matching Regular Expression
+	IgnoreBlockDevicesRegex string
 }
 
 // Default returns a new instance of config
