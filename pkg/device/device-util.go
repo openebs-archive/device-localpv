@@ -32,9 +32,6 @@ import (
 	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
 )
 
-// Compiled Regex to Ignore the Block devices
-var IgnoreBlockDevicesRegex *regexp.Regexp = nil
-
 // Partition Commands
 const (
 	PartitionDiskID    = "fdisk -l /dev/%s"
@@ -504,7 +501,7 @@ func getDiskList() ([]diskDetail, error) {
 		if len(tmp) <= lsblkDevTypeIndex {
 			continue
 		}
-		if IgnoreBlockDevicesRegex != nil && IgnoreBlockDevicesRegex.MatchString(tmp[lsblkNameIndex]) {
+		if DeviceConfiguration.IgnoreBlockDevicesRegex != nil && DeviceConfiguration.IgnoreBlockDevicesRegex.MatchString(tmp[lsblkNameIndex]) {
 			continue
 		}
 

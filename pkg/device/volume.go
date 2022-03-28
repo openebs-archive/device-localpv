@@ -17,6 +17,7 @@ package device
 import (
 	"context"
 	"os"
+	"regexp"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -28,6 +29,11 @@ import (
 	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
 	"github.com/openebs/device-localpv/pkg/builder/volbuilder"
 )
+
+type DeviceConfig struct {
+	// Compiled Regex to Ignore the Block devices
+	IgnoreBlockDevicesRegex *regexp.Regexp
+}
 
 const (
 	// DeviceNamespaceKey is the environment variable to get openebs namespace
@@ -65,6 +71,9 @@ var (
 
 	// GoogleAnalyticsEnabled should send google analytics or not
 	GoogleAnalyticsEnabled string
+
+	//
+	DeviceConfiguration *DeviceConfig
 )
 
 func init() {
@@ -79,6 +88,8 @@ func init() {
 	}
 
 	GoogleAnalyticsEnabled = os.Getenv(GoogleAnalyticsKey)
+
+	DeviceConfiguration = &DeviceConfig{}
 }
 
 // ProvisionVolume creates a DeviceVolume CR,

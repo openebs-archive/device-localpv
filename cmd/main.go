@@ -88,7 +88,7 @@ func main() {
 	)
 
 	cmd.PersistentFlags().StringVar(
-		&config.IgnoreBlockDevicesRegex, "ignore-block-devices-regex", "", "Ignore the Stroage devices by specifying the matching Regular Expression",
+		&config.IgnoreBlockDevicesRegex, "ignore-block-devices-regex", "", "Ignore the block devices by specifying the matching regular expression",
 	)
 
 	err := cmd.Execute()
@@ -113,7 +113,7 @@ func run(config *config.Config) {
 	)
 
 	if len(config.IgnoreBlockDevicesRegex) > 0 {
-		device.IgnoreBlockDevicesRegex = regexp.MustCompile(config.IgnoreBlockDevicesRegex)
+		device.DeviceConfiguration.IgnoreBlockDevicesRegex = regexp.MustCompile(config.IgnoreBlockDevicesRegex)
 	}
 
 	err := driver.New(config).Run()
