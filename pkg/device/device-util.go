@@ -498,7 +498,7 @@ func getDiskList() ([]diskDetail, error) {
 		// a sample blockDeviceEntry entry look like
 		// sdb        8:16   0 17179869184  0 disk
 		tmp := strings.Fields(blockDeviceEntry)
-		if len(tmp) == 0 {
+		if len(tmp) <= lsblkDevTypeIndex {
 			continue
 		}
 
