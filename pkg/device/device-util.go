@@ -240,7 +240,7 @@ func findBestPart(diskMetaName string, partSize uint64) (string, uint64, error) 
 			return pList[i].SizeMiB < pList[j].SizeMiB
 		})
 		for _, tmp := range pList {
-			if tmp.SizeMiB > partSize {
+			if tmp.SizeMiB >= partSize {
 				return tmp.DiskName, tmp.StartMiB, nil
 			}
 		}
@@ -295,7 +295,8 @@ func parsePartFree(row partedOutput) partFree {
 	endMib := math.Floor(float64(row.endBytes) / 1024 / 1024)
 	sizeMib := uint64(0)
 	if endMib > beginMib {
-		sizeMib = uint64(endMib - beginMib)
+		// calculate the part free size, needs increase the difference by 1
+		sizeMib = uint64(math.Floor(float64(row.endBytes-row.beginBytes+1) / 1024 / 1024))
 	}
 
 	return partFree{
