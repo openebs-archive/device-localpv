@@ -412,6 +412,10 @@ func GetPartitionList(diskPath string, diskMetaName string, free bool) ([]parted
 	rows := strings.Split(out, "\n")
 
 	deviceRow := strings.Split(rows[1], ":")
+	if len(deviceRow) < 6 {
+		klog.Infof("Disk: %s Not a usable Disk, out: %s", diskPath, out)
+		return nil, errors.New("Wrong command out")
+	}
 	if deviceRow[partedDiskInfoPartTypeIndex] != partitionTypeGPT {
 		klog.Infof("Disk: %s Not a GPT Partitioned Disk", diskPath)
 		return nil, errors.New("Wrong Partition type")
