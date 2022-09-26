@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 
 	config "github.com/openebs/device-localpv/pkg/config"
 	"github.com/openebs/device-localpv/pkg/device"
@@ -86,6 +87,10 @@ func main() {
 		&config.DisableExporterMetrics, "disable-exporter-metrics", true, "Excludes additional process or go runtime related metrics (i.e process_*, go_*). Default is true.",
 	)
 
+	cmd.PersistentFlags().StringVar(
+		&config.IgnoreBlockDevicesRegex, "ignore-block-devices-regex", "", "Ignore the block devices by specifying the matching regular expression",
+	)
+
 	err := cmd.Execute()
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "%s", err.Error())
@@ -106,6 +111,10 @@ func run(config *config.Config) {
 		config.Endpoint,
 		config.NodeID,
 	)
+
+	if len(config.IgnoreBlockDevicesRegex) > 0 {
+		device.DeviceConfiguration.IgnoreBlockDevicesRegex = regexp.MustCompile(config.IgnoreBlockDevicesRegex)
+	}
 
 	err := driver.New(config).Run()
 	if err != nil {

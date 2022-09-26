@@ -501,6 +501,9 @@ func getDiskList() ([]diskDetail, error) {
 		if len(tmp) <= lsblkDevTypeIndex {
 			continue
 		}
+		if DeviceConfiguration.IgnoreBlockDevicesRegex != nil && DeviceConfiguration.IgnoreBlockDevicesRegex.MatchString(tmp[lsblkNameIndex]) {
+			continue
+		}
 
 		// loop is added here for testing purposes
 		if tmp[lsblkDevTypeIndex] == deviceTypeDisk ||
