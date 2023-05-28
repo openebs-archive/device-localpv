@@ -17,10 +17,6 @@ limitations under the License.
 package volume
 
 import (
-	clientset "github.com/openebs/device-localpv/pkg/generated/clientset/internalclientset"
-	openebsScheme "github.com/openebs/device-localpv/pkg/generated/clientset/internalclientset/scheme"
-	informers "github.com/openebs/device-localpv/pkg/generated/informer/externalversions"
-	listers "github.com/openebs/device-localpv/pkg/generated/lister/device/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -29,6 +25,11 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog"
+
+	clientset "github.com/openebs/device-localpv/pkg/generated/clientset/internalclientset"
+	openebsScheme "github.com/openebs/device-localpv/pkg/generated/clientset/internalclientset/scheme"
+	informers "github.com/openebs/device-localpv/pkg/generated/informer/externalversions"
+	listers "github.com/openebs/device-localpv/pkg/generated/lister/device/v1alpha1"
 )
 
 const controllerAgentName = "devicevolume-controller"
@@ -98,7 +99,8 @@ func (cb *VolControllerBuilder) withVolSynced(sl informers.SharedInformerFactory
 
 // withWorkqueue adds workqueue to controller object.
 func (cb *VolControllerBuilder) withWorkqueueRateLimiting() *VolControllerBuilder {
-	cb.VolController.workqueue = workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Vol")
+	cb.VolController.workqueue = workqueue.NewRateLimitingQueueWithConfig(workqueue.
+		DefaultControllerRateLimiter(), workqueue.RateLimitingQueueConfig{Name: "Vol"})
 	return cb
 }
 

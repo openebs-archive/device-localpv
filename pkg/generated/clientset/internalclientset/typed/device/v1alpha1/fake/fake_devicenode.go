@@ -24,7 +24,6 @@ import (
 	v1alpha1 "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
-	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	testing "k8s.io/client-go/testing"
@@ -36,9 +35,9 @@ type FakeDeviceNodes struct {
 	ns   string
 }
 
-var devicenodesResource = schema.GroupVersionResource{Group: "local.openebs.io", Version: "v1alpha1", Resource: "devicenodes"}
+var devicenodesResource = v1alpha1.SchemeGroupVersion.WithResource("devicenodes")
 
-var devicenodesKind = schema.GroupVersionKind{Group: "local.openebs.io", Version: "v1alpha1", Kind: "DeviceNode"}
+var devicenodesKind = v1alpha1.SchemeGroupVersion.WithKind("DeviceNode")
 
 // Get takes name of the deviceNode, and returns the corresponding deviceNode object, and an error if there is any.
 func (c *FakeDeviceNodes) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.DeviceNode, err error) {
@@ -105,7 +104,7 @@ func (c *FakeDeviceNodes) Update(ctx context.Context, deviceNode *v1alpha1.Devic
 // Delete takes name of the deviceNode and deletes it. Returns an error if one occurs.
 func (c *FakeDeviceNodes) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(devicenodesResource, c.ns, name), &v1alpha1.DeviceNode{})
+		Invokes(testing.NewDeleteActionWithOptions(devicenodesResource, c.ns, name, opts), &v1alpha1.DeviceNode{})
 
 	return err
 }

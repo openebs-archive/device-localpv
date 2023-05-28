@@ -24,7 +24,6 @@ import (
 	v1alpha1 "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
-	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	testing "k8s.io/client-go/testing"
@@ -36,9 +35,9 @@ type FakeDeviceVolumes struct {
 	ns   string
 }
 
-var devicevolumesResource = schema.GroupVersionResource{Group: "local.openebs.io", Version: "v1alpha1", Resource: "devicevolumes"}
+var devicevolumesResource = v1alpha1.SchemeGroupVersion.WithResource("devicevolumes")
 
-var devicevolumesKind = schema.GroupVersionKind{Group: "local.openebs.io", Version: "v1alpha1", Kind: "DeviceVolume"}
+var devicevolumesKind = v1alpha1.SchemeGroupVersion.WithKind("DeviceVolume")
 
 // Get takes name of the deviceVolume, and returns the corresponding deviceVolume object, and an error if there is any.
 func (c *FakeDeviceVolumes) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.DeviceVolume, err error) {
@@ -117,7 +116,7 @@ func (c *FakeDeviceVolumes) UpdateStatus(ctx context.Context, deviceVolume *v1al
 // Delete takes name of the deviceVolume and deletes it. Returns an error if one occurs.
 func (c *FakeDeviceVolumes) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(devicevolumesResource, c.ns, name), &v1alpha1.DeviceVolume{})
+		Invokes(testing.NewDeleteActionWithOptions(devicevolumesResource, c.ns, name, opts), &v1alpha1.DeviceVolume{})
 
 	return err
 }
