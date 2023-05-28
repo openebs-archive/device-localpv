@@ -17,9 +17,10 @@ limitations under the License.
 package driver
 
 import (
-	"k8s.io/klog"
 	"regexp"
 	"strconv"
+
+	"k8s.io/klog/v2"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 

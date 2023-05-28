@@ -21,9 +21,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/openebs/device-localpv/pkg/device"
 	"github.com/prometheus/client_golang/prometheus"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
+
+	"github.com/openebs/device-localpv/pkg/device"
 )
 
 const refreshInterval = 1 * time.Minute
