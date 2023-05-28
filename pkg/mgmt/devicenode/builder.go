@@ -108,7 +108,8 @@ func (cb *NodeControllerBuilder) withNodeSynced(sl informers.SharedInformerFacto
 
 // withWorkqueue adds workqueue to controller object.
 func (cb *NodeControllerBuilder) withWorkqueueRateLimiting() *NodeControllerBuilder {
-	cb.NodeController.workqueue = workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Node")
+	cb.NodeController.workqueue = workqueue.NewRateLimitingQueueWithConfig(workqueue.
+		DefaultControllerRateLimiter(), workqueue.RateLimitingQueueConfig{Name: "Node"})
 	return cb
 }
 

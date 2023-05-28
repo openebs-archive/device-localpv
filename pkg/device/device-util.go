@@ -81,7 +81,6 @@ const (
 // /dev/sdd:17179869184B:scsi:512:512:gpt:VMware Virtual disk:;
 // 1:1048576B:10485759B:9437184B::test-device:;
 //
-//
 // BYT;
 // /dev/sdd:17179869184B:scsi:512:512:gpt:VMware Virtual disk:;
 // 1:17408B:1048575B:1031168B:free;
