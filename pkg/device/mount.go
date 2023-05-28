@@ -19,13 +19,14 @@ import (
 	"fmt"
 	"os"
 
-	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
 	mnt "github.com/openebs/lib-csi/pkg/mount"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 	utilexec "k8s.io/utils/exec"
 	"k8s.io/utils/mount"
+
+	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
 )
 
 // MountInfo contains the volume related info

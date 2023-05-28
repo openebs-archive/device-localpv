@@ -23,12 +23,13 @@ import (
 	"os"
 	"regexp"
 
-	config "github.com/openebs/device-localpv/pkg/config"
+	"github.com/spf13/cobra"
+	"k8s.io/klog/v2"
+
+	"github.com/openebs/device-localpv/pkg/config"
 	"github.com/openebs/device-localpv/pkg/device"
 	"github.com/openebs/device-localpv/pkg/driver"
 	"github.com/openebs/device-localpv/pkg/version"
-	"github.com/spf13/cobra"
-	"k8s.io/klog"
 )
 
 /*

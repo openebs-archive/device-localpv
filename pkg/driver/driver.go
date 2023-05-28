@@ -18,8 +18,9 @@ package driver
 
 import (
 	"github.com/container-storage-interface/spec/lib/go/csi"
-	config "github.com/openebs/device-localpv/pkg/config"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
+
+	"github.com/openebs/device-localpv/pkg/config"
 )
 
 // volume can only be published once as

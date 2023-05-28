@@ -18,18 +18,18 @@ package volume
 
 import (
 	"sync"
+	"time"
 
 	"github.com/pkg/errors"
 
-	"time"
-
-	clientset "github.com/openebs/device-localpv/pkg/generated/clientset/internalclientset"
-	informers "github.com/openebs/device-localpv/pkg/generated/informer/externalversions"
 	kubeinformers "k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
+
+	clientset "github.com/openebs/device-localpv/pkg/generated/clientset/internalclientset"
+	informers "github.com/openebs/device-localpv/pkg/generated/informer/externalversions"
 )
 
 var (

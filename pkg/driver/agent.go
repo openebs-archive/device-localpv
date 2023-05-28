@@ -22,8 +22,6 @@ import (
 	"sync"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
-	"github.com/openebs/device-localpv/pkg/collector"
-	"github.com/openebs/device-localpv/pkg/config"
 	k8sapi "github.com/openebs/lib-csi/pkg/client/k8s"
 	"github.com/openebs/lib-csi/pkg/mount"
 	"github.com/prometheus/client_golang/prometheus"
@@ -34,8 +32,11 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
+
+	"github.com/openebs/device-localpv/pkg/collector"
+	"github.com/openebs/device-localpv/pkg/config"
 
 	apis "github.com/openebs/device-localpv/pkg/apis/openebs.io/device/v1alpha1"
 	"github.com/openebs/device-localpv/pkg/builder/volbuilder"
