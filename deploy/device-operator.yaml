@@ -376,10 +376,10 @@ spec:
                 - openebs-device-controller
             topologyKey: "kubernetes.io/hostname"
       priorityClassName: system-cluster-critical
-      serviceAccount: openebs-device-controller-sa
+      serviceAccountName: openebs-device-controller-sa
       containers:
         - name: csi-provisioner
-          image: registry.k8s.io/sig-storage/csi-provisioner:v3.0.0
+          image: registry.k8s.io/sig-storage/csi-provisioner:v3.5.0
           imagePullPolicy: IfNotPresent
           args:
             - "--csi-address=$(ADDRESS)"
@@ -500,11 +500,11 @@ spec:
         openebs.io/version: ci
     spec:
       priorityClassName: system-node-critical
-      serviceAccount: openebs-device-node-sa
+      serviceAccountName: openebs-device-node-sa
       hostNetwork: true
       containers:
         - name: csi-node-driver-registrar
-          image: registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.3.0
+          image: registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.8.0
           imagePullPolicy: IfNotPresent
           args:
             - "--v=5"
